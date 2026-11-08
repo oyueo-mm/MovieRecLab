@@ -22,6 +22,12 @@ MovieLens의 실제 사용자 평점 데이터로 추천 시스템을 체험하�
 
 저장소의 `main` 브랜치 루트에 `index.html`이 있습니다. GitHub → **Settings → Pages → Deploy from a branch → main / (root)**로 활성화하세요.
 
+## GitHub Pages 배포 확인
+
+- **Settings → Pages**에서 배포 원본이 `main / (root)`인지 확인합니다.
+- 배포 후 **Actions**에서 `pages build and deployment` 실행이 표시되는지 확인합니다.
+- 배포 실행이 생성되지 않으면 GitHub 웹에서 `README.md`를 직접 수정하여 `main`에 커밋한 뒤 확인합니다. GitHub Pages의 분기 배포는 저장소 관리자(이메일 인증 완료)의 푸시가 필요할 수 있습니다.
+
 ## 한계
 
 이것은 1회차 학습용 프로토타입입니다. 추천 결과는 실제 데이터 기반이지만, 추천 알고리즘의 정량적 일반화 성능은 아직 측정하지 않았습니다. 원격 데이터 제공 서비스가 CORS·네트워크 정책을 바꾸면 ZIP 수동 로딩이 필요할 수 있습니다.
