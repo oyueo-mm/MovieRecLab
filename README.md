@@ -1,33 +1,54 @@
 # MovieRec Lab
 
-MovieLens의 실제 사용자 평점 데이터로 추천 시스템을 체험하는 **COW 1회차 교육용 웹 데모**입니다.
+MovieLens `ml-latest-small`에 포함된 실제 영화 평점으로 추천 알고리즘과 데이터의 구조를 실험하는 **정적 웹앱**입니다. GitHub Pages에서 실행되며 별도 서버·API 키·로그인이 필요하지 않습니다.
 
-## 실행하기
+**사이트:** https://oyueo-mm.github.io/MovieRecLab/
 
-- GitHub Pages에서 `https://oyueo-mm.github.io/MovieRecLab/`에 접속하면 **자동으로 데이터가 로딩**됩니다.
-- 영화 검색 → 0.5~5점 평점 입력 → 인기 기반 / 장르 기반 / 사용자 협업 필터링 추천 및 비교
-- 데이터 분석 탭에서 평점 분포·장르별 영화 수·인기 영화·품질 검사 확인
-- 자동 로딩이 차단되면 **다시 시도** 또는 **공식 ZIP 직접 선택**을 이용할 수 있습니다.
+## 기능
 
-## 데이터 출처 및 조건
+- **개인화 영화 추천:** 인기 기반, 장르·태그 기반, 사용자 KNN, 아이템 KNN, 하이브리드 5개 방식
+- **검색:** 제목/태그, 장르, 제작 연대, 최소 평점 수, 정렬 조건
+- **영화 상세정보:** 개봉연도, 장르, 사용자 태그, 실제 평균·보정 평점·평가 수, IMDb/TMDB/MovieLens 링크
+- **추천 근거:** 적용된 추천 신호를 설명하고, 휴리스틱 상대 강도를 시각화 (확률이나 인과적 설명은 아님)
+- **분석:** 평점 분포, 장르별 평가 빈도 및 평균, 제작 연대, 사용자 활동량, 인기 영화, 평점 행렬 히트맵, 품질/희소성
+- **알고리즘 비교:** 동일한 입력에 대한 추천 TOP 5 비교, 공통 영화 강조
+- **오프라인 평가:** 평가 사용자를 학습에서 통째로 제외한 후 사용자 초기 K개 평점으로 시간순 마지막 20%의 4점 이상 영화를 예측. Recall@10, NDCG@10, Hit Rate@10, 추천 영화 Coverage.
+- **개인 설정:** 입력한 평점은 브라우저 `localStorage`에 저장되며 서버에 전송되지 않습니다.
 
-- 원본: [GroupLens Research — MovieLens latest-small](https://grouplens.org/datasets/movielens/latest/) (2018년 9월 26일 생성 표본)
-- 영화·평점 CSV는 [공개 미러](https://github.com/smanihwr/ml-latest-small/tree/ba3cd91761e54faa64483456b619d1a1f4d70971)의 고정 커밋에서 브라우저가 직접 가져옵니다. 미러에 장애가 발생하면 jsDelivr CDN으로 재시도합니다.
-- 데이터는 610명의 사용자, 9,742개 영화, 100,836건의 평점을 포함합니다.
-- 개인 실습·비상업적 교육 목적입니다. GroupLens가 이 프로젝트를 보증하거나 후원하지 않습니다.
-- MovieLens 데이터의 [사용 조건](https://files.grouplens.org/datasets/movielens/ml-latest-small-README.html)을 확인하세요. 상업적 사용에는 별도 허가가 필요합니다.
-- 웹 데모는 MovieLens ZIP/CSV 원본을 저장소에 포함하지 않습니다. 브라우저에서만 처리합니다.
+## 실행
 
-## 배포
+GitHub Pages에 접속하면 외부에 공개된 MovieLens CSV 원본에서 `movies.csv`, `ratings.csv`, `tags.csv`, `links.csv`를 자동으로 가져옵니다. 필수 파일은 `movies.csv`와 `ratings.csv`이며 나머지는 부가정보로 사용합니다. 자동 로딩이 실패하면 공식 ZIP을 직접 불러올 수 있습니다.
 
-저장소의 `main` 브랜치 루트에 `index.html`이 있습니다. GitHub → **Settings → Pages → Deploy from a branch → main / (root)**로 활성화하세요.
+GitHub Pages 배포는 `main / (root)` 설정을 사용합니다. `index.html`, `styles.css`, `engine.js`, `app.js`, `eval-worker.js` 파일을 같은 디렉터리에 둡니다. 오프라인 평가는 `Web Worker`를 사용하므로 HTTP(S) 서버에서 실행해야 합니다.
 
-## GitHub Pages 배포 확인
+## 알고리즘
 
-- **Settings → Pages**에서 배포 원본이 `main / (root)`인지 확인합니다.
-- 배포 후 **Actions**에서 `pages build and deployment` 실행이 표시되는지 확인합니다.
-- 배포 실행이 생성되지 않으면 GitHub 웹에서 `README.md`를 직접 수정하여 `main`에 커밋한 뒤 확인합니다. GitHub Pages의 분기 배포는 저장소 관리자(이메일 인증 완료)의 푸시가 필요할 수 있습니다.
+| 모델 | 방식 |
+|---|---|
+| 인기 기반 | 20개의 가상 평가를 전체 평균으로 수축하는 베이지안 평활화 |
+| 콘텐츠 기반 | 장르 IDF 코사인 유사도와 태그 겹침, 평점 선호 신호, 인기 prior |
+| 사용자 KNN | 사용자 평균 중심화, 입력 점수의 3점 대비 편차, 공통 평가 개수 기반 shrinkage |
+| 아이템 KNN | 사용자 중심화 조정 코사인 유사도, 공통 평가 개수 기반 shrinkage |
+| 하이브리드 | 콘텐츠·사용자·아이템 추천 순위의 가중 합산, 입력 개수에 따라 비중 조절 |
 
-## 한계
+이 버전에서 모델별로 사용한 계수는 **탐색용 초기 설정**이며 검증 집합을 통한 최적화 값이 아닙니다. 개선을 확증하려면 별도 검증 집합과 독립된 최종 평가가 필요합니다.
 
-이것은 1회차 학습용 프로토타입입니다. 추천 결과는 실제 데이터 기반이지만, 추천 알고리즘의 정량적 일반화 성능은 아직 측정하지 않았습니다. 원격 데이터 제공 서비스가 CORS·네트워크 정책을 바꾸면 ZIP 수동 로딩이 필요할 수 있습니다.
+## 오프라인 평가의 한계
+
+평가 대상을 익명 사용자 ID 순서로 균등 추출하여 전체 학습에서 제외합니다. 해당 사용자의 시간상 첫 `K`개 평점만 입력으로 사용하고, 마지막 20% 평점 중 `4.0점 이상`이며 학습 데이터에 평가 이력이 충분한 영화를 관련 항목으로 간주합니다. 나머지 평가 대상자의 중간 평점은 추천 입력/정답에서 제외됩니다. 동일한 전체 추천 후보 목록을 대상으로 다섯 모델의 상위 10개를 비교합니다.
+
+- **미평가 = 비선호가 아님.** MovieLens의 관측 편향 때문에 오프라인 순위 지표가 실제 사용 만족도를 나타내지는 않습니다.
+- **글로벌 시간 분할이 아님.** 평가 사용자별 시간순 분할만 적용하므로 모델 학습의 영화 정보에 다른 사용자들의 미래 평가가 포함될 수 있습니다.
+- **테스트 반복 최적화 금지.** 현재 결과를 참고해 하이퍼파라미터를 반복 변경하면 평가 점수가 과대평가될 수 있습니다. 정식 2차 실험 시 검증/테스트를 추가로 분리해야 합니다.
+- 표본 선택 수에 따라 평가 결과가 달라질 수 있으며, 표본 평균의 신뢰구간은 계산하지 않습니다.
+
+## 데이터 출처와 라이선스
+
+- GroupLens Research, University of Minnesota, [MovieLens latest-small](https://grouplens.org/datasets/movielens/latest/): 610명, 영화 9,742편, 평점 100,836건, 태그 3,683건(2018년 생성).
+- [데이터 이용 조건](https://files.grouplens.org/datasets/movielens/ml-latest-small-README.html): 출처 명시, 미네소타대학교 또는 GroupLens의 승인·보증으로 오해될 표현 금지, 영리 목적 사용 시 별도 허가 필요.
+- CSV를 다운로드받는 공개 미러는 [smanihwr/ml-latest-small](https://github.com/smanihwr/ml-latest-small) (고정 커밋) 및 jsDelivr입니다. 저장소에 원본 CSV를 포함하지 않습니다.
+- 외부 IMDb/TMDB 페이지 내용은 각 제공자의 조건에 따르며, 본 프로젝트는 외부 페이지의 포스터/줄거리 데이터를 복제하지 않습니다.
+
+## 테스트
+
+`node --check engine.js`, `node --check app.js`, `node --check eval-worker.js`로 구문을 검사합니다. 자체 테스트는 임의 생성한 소규모 평가 데이터에 대한 모델 출력·제외 처리·평가 계산 검증이며, **전체 MovieLens 원본에 대한 오프라인 평가 점수는 실제 실행 후 확인해야 합니다.**
