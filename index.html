@@ -7,6 +7,7 @@
 <meta name="description" content="MovieLens 영화 추천 알고리즘 실험실: 개인화 추천, EDA, 추천 근거, 오프라인 성능 평가">
 <title>MovieRec Lab — 추천 알고리즘 실험실</title>
 <link rel="stylesheet" href="./styles.css">
+<link rel="stylesheet" href="./analytics.css">
 </head>
 <body>
 <div class="layout">
@@ -34,7 +35,9 @@
 <div class="pane" style="margin-top:18px"><div class="pane-head"><div><h2>추천 결과 TOP 10</h2><p class="hint">영화를 클릭하면 추천 근거와 영화 정보를 확인할 수 있습니다.</p></div></div><div class="result-list" id="recResults"><div class="empty">영화 평점을 입력하면 추천 결과를 볼 수 있어요.</div></div></div>
 </section>
 <section class="tab" id="compare"><div class="pane"><div class="pane-head"><div><h2>추천 알고리즘 비교</h2><p class="hint">같은 취향 입력을 다섯 가지 방식으로 비교합니다. 공통 추천 영화에는 표시가 붙습니다.</p></div><button class="btn primary" id="compareBtn" disabled>비교 실행</button></div><div id="compareResults"><div class="empty">평점을 입력한 뒤 비교 실행을 눌러주세요.</div></div><div class="note"><strong>주의</strong>모델마다 추천 점수의 척도가 다릅니다. 점수를 직접 비교하기보다 추천 순위와 실제 평가 결과를 함께 확인해야 합니다.</div></div></section>
-<section class="tab" id="analysis"><div id="summaryStats" class="metric-grid"><div class="empty">데이터를 불러오는 중입니다.</div></div><div class="chart-grid">
+<section class="tab" id="analysis"><div id="summaryStats" class="metric-grid"><div class="empty">데이터를 불러오는 중입니다.</div></div>
+<div id="analyticsLab" class="pane eda-lab"><div class="eda-top"><div><h2>심화 데이터 분석</h2><p>분석 항목을 선택하면 실제 MovieLens 데이터로 그래프와 해석이 갱신됩니다.</p></div><span class="hint">평가용 사용자 ID는 익명 번호로 표시</span></div><div class="eda-tabs" role="group" aria-label="데이터 분석 항목"><button type="button" data-eda-tab="overview" aria-pressed="true" class="active">핵심 인사이트</button><button type="button" data-eda-tab="users" aria-pressed="false">사용자 행동</button><button type="button" data-eda-tab="movies" aria-pressed="false">영화별 탐색</button><button type="button" data-eda-tab="genres" aria-pressed="false">장르·태그</button><button type="button" data-eda-tab="time" aria-pressed="false">시간 흐름</button></div><div id="edaPanel" class="eda-body" aria-live="polite"><div class="empty">MovieLens 데이터 분석을 준비하고 있습니다.</div></div></div>
+<details class="eda-basic"><summary>기본 분석 차트 8종 펼쳐보기</summary><div class="chart-grid">
 <div class="chart"><h3>사용자 평점 분포</h3><p class="hint">0.5~5.0점 평가 횟수</p><div id="ratingChart"></div></div>
 <div class="chart"><h3>장르별 평가 횟수</h3><p class="hint">복수 장르 영화는 각각 집계</p><div id="genreChart"></div></div>
 <div class="chart"><h3>장르별 평균 평점</h3><p class="hint">장르 전체 평가 평균, 평가 횟수 함께 표시</p><div id="genreRatingChart"></div></div>
@@ -43,7 +46,7 @@
 <div class="chart"><h3>평점이 많은 영화 TOP 12</h3><p class="hint">사용자 평점 개수 순</p><div id="popularChart"></div></div>
 <div class="chart"><h3>사용자–영화 행렬 표본</h3><p class="hint">활발한 사용자 25명 × 평가가 많은 영화 36편. 색칠된 칸은 평점이 존재함을 의미합니다.</p><div id="matrixChart"></div></div>
 <div class="chart"><h3>데이터 품질과 희소성</h3><div id="qualityChart"></div></div>
-</div></section>
+</div></details></section>
 <section class="tab" id="evaluate"><div class="pane"><div class="pane-head"><div><h2>오프라인 추천 성능 평가</h2><p class="hint">평점 데이터를 시간순으로 나누고 같은 조건에서 다섯 알고리즘을 평가합니다.</p></div></div>
 <div class="horizontal" style="justify-content:flex-start;margin-bottom:15px"><label class="small bold" for="evalProfile">입력 평점 수</label><select id="evalProfile"><option value="3">3개</option><option value="5" selected>5개</option><option value="10">10개</option><option value="20">20개</option></select><label class="small bold" for="evalUsers">평가 사용자 수</label><select id="evalUsers"><option value="18">18명 (빠름)</option><option value="36" selected>36명 (기본)</option><option value="60">60명 (정밀)</option></select><button id="evaluateBtn" class="btn primary" disabled>실제 데이터로 평가 실행</button></div>
 <div id="evalStatus" class="hint" aria-live="polite">평가는 자동 실행되지 않습니다. 시작 버튼을 눌러주세요.</div><div id="evaluationResults" style="margin-top:16px"></div>
@@ -54,5 +57,6 @@
 <div class="modal-backdrop" id="detailBackdrop" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle"><div class="modal-header"><div><h2 id="detailTitle">영화 상세정보</h2><p class="hint" id="detailYear"></p></div><button class="iconbtn" id="closeDetail" aria-label="닫기">×</button></div><div id="detailBody"></div></div></div>
 <script src="./engine.js"></script>
 <script src="./i18n.js"></script>
+<script src="./analytics.js"></script>
 <script src="./app.js"></script>
 </body></html>
