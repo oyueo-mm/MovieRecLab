@@ -41,3 +41,13 @@ body.onboarding-mode .onboard-actions{margin-top:18px;padding-top:16px}
 body.onboarding-mode .onboard-tip{margin-top:10px}
 @media(max-width:930px){.onboard-title-row{grid-template-columns:1fr;justify-items:center;row-gap:12px}.onboard-title-row>.onboard-title,.onboard-title-row>.lang-toggle{grid-column:1;justify-self:center}}
 @media(max-width:540px){body.onboarding-mode #onboardingGate{padding-top:14px}body.onboarding-mode .onboard-card{min-height:unset;padding:14px}.onboard-title-row{row-gap:10px}}
+
+/* 영화 카드 아래에 진행 상황 및 추가 영화 버튼 배치 */
+body.onboarding-mode .onboard-tools{margin:15px auto 12px}
+body.onboarding-mode .onboard-tools .onboard-search{max-width:none}
+body.onboarding-mode .onboard-footer-controls{display:flex;align-items:flex-end;gap:16px;margin:18px auto 0;max-width:100%;min-width:0}
+body.onboarding-mode .onboard-progress-group{min-width:0;flex:1}
+body.onboarding-mode .onboard-progress-group .onboard-progresswrap,body.onboarding-mode .onboard-progress-group .onboard-track{max-width:none}
+body.onboarding-mode .onboard-progress-group .onboard-progresswrap{margin-bottom:9px}
+body.onboarding-mode .onboard-footer-controls #onboardingMore{flex:0 0 auto;white-space:nowrap}
+@media(max-width:730px){body.onboarding-mode .onboard-footer-controls{flex-direction:column;align-items:stretch;gap:12px}body.onboarding-mode .onboard-footer-controls #onboardingMore{width:100%}}
