@@ -18,13 +18,13 @@
 <button data-tab="guide"><span class="ico">ⓘ</span>알고리즘 설명</button>
 </nav></aside>
 <main class="content">
-<header class="heading"><div><h1 id="pageTitle">내 취향 영화 추천</h1><p class="subtitle" id="pageDesc">영화를 평가하고 추천 방식별 결과를 살펴보세요.</p></div></header>
+<header class="heading"><div><h1 id="pageTitle">내 취향 영화 추천</h1><p class="subtitle" id="pageDesc">영화를 평가하고 추천 방식별 결과를 살펴보세요.</p></div><div class="lang-toggle" role="group" aria-label="영화 정보 표시 언어"><button class="lang-btn is-active" data-language="ko" type="button" aria-pressed="true">한국어 우선</button><button class="lang-btn" data-language="en" type="button" aria-pressed="false">원문 우선</button></div></header>
 <div class="status" id="loadStatus" role="status" aria-live="polite">MovieLens 데이터를 불러오는 중입니다.</div>
 <div id="recovery" class="pane" hidden><h2>데이터 불러오기</h2><p class="hint" style="margin-top:9px">자동 로딩에 문제가 있으면 재시도하거나 공식 ZIP을 직접 선택하세요.</p><div class="horizontal" style="justify-content:flex-start;margin-top:12px"><button class="btn primary" id="retryBtn">다시 시도</button><label class="btn" for="zipFile" style="cursor:pointer">ZIP 파일 선택</label><input type="file" id="zipFile" accept=".zip" hidden><a class="btn" target="_blank" rel="noopener noreferrer" href="https://files.grouplens.org/datasets/movielens/ml-latest-small.zip">공식 데이터</a></div></div>
 <section class="tab active" id="recommend">
 <div class="grid2">
-<div class="pane"><div class="pane-head"><div><h2>영화 찾기</h2><p class="hint">제목·태그 검색과 장르·연도 필터를 지원합니다.</p></div><span class="hint" id="searchCount"></span></div>
-<div class="toolbar"><input id="searchQuery" aria-label="영화 제목 또는 태그 검색" placeholder="영화 제목이나 태그 검색" autocomplete="off" disabled><select id="searchSort" aria-label="정렬 방식"><option value="popular">평가 많은 순</option><option value="bayes">보정 평점 높은 순</option><option value="new">최신 영화 순</option><option value="old">오래된 영화 순</option><option value="alpha">제목 순</option></select></div>
+<div class="pane"><div class="pane-head"><div><h2>영화 찾기</h2><p class="hint">한국어·영어 제목과 태그 검색, 장르·연도 필터를 지원합니다.</p></div><span class="hint" id="searchCount"></span></div>
+<div class="toolbar"><input id="searchQuery" aria-label="영화 제목 또는 태그 검색" placeholder="한국어·영어 제목 또는 태그 검색" autocomplete="off" disabled><select id="searchSort" aria-label="정렬 방식"><option value="popular">평가 많은 순</option><option value="bayes">보정 평점 높은 순</option><option value="new">최신 영화 순</option><option value="old">오래된 영화 순</option><option value="alpha">제목 순</option></select></div>
 <div class="filters"><select id="searchGenre" aria-label="장르"><option value="">전체 장르</option></select><select id="searchDecade" aria-label="연도"><option value="">전체 연도</option></select><select id="searchMinimum" aria-label="최소 평점 수"><option value="0">평점 수 제한 없음</option><option value="5">5건 이상</option><option value="20">20건 이상</option><option value="100">100건 이상</option></select></div>
 <div class="search-results" id="searchResults"><p class="empty">영화 목록을 준비하고 있습니다.</p></div>
 <div class="horizontal" style="margin-top:15px;justify-content:flex-start"><button class="btn tiny" id="exampleBtn" disabled>예시 평점 채우기</button><button class="btn tiny" id="resetFilters">필터 초기화</button></div>
@@ -53,5 +53,6 @@
 </main></div>
 <div class="modal-backdrop" id="detailBackdrop" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle"><div class="modal-header"><div><h2 id="detailTitle">영화 상세정보</h2><p class="hint" id="detailYear"></p></div><button class="iconbtn" id="closeDetail" aria-label="닫기">×</button></div><div id="detailBody"></div></div></div>
 <script src="./engine.js"></script>
+<script src="./i18n.js"></script>
 <script src="./app.js"></script>
 </body></html>
