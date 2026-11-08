@@ -27,3 +27,17 @@ body.onboarding-mode .onboard-tip{text-align:center;margin-top:18px}
 @media(max-width:1150px){body.onboarding-mode .onboard-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:820px){body.onboarding-mode .onboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))}body.onboarding-mode #onboardingGate{padding:20px 20px 48px}}
 @media(max-width:540px){body.onboarding-mode .onboard-standalone-head{margin-bottom:28px;flex-wrap:wrap}body.onboarding-mode .onboard-grid{grid-template-columns:1fr;gap:11px}body.onboarding-mode .onboard-card{min-height:unset;padding:17px}body.onboarding-mode .onboard-tools{margin:17px auto}body.onboarding-mode .onboard-actions{margin-top:18px}body.onboarding-mode .onboard-intro{margin-bottom:24px}body.onboarding-mode .onboard-title{font-size:30px}}
+
+/* 온보딩 상단을 제목 한 줄로 압축: 로고 제거, 언어 전환 버튼을 제목 오른쪽에 표시 */
+.onboard-title-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;column-gap:12px}
+.onboard-title-row>.onboard-title{grid-column:2;margin:0}
+.onboard-title-row>.lang-toggle{grid-column:3;justify-self:end;white-space:nowrap}
+body.onboarding-mode #onboardingGate{padding-top:18px}
+body.onboarding-mode .onboard-intro{margin-bottom:19px}
+body.onboarding-mode .onboard-tools{margin:15px auto}
+body.onboarding-mode .onboard-grid{gap:12px}
+body.onboarding-mode .onboard-card{min-height:170px;padding:16px}
+body.onboarding-mode .onboard-actions{margin-top:18px;padding-top:16px}
+body.onboarding-mode .onboard-tip{margin-top:10px}
+@media(max-width:930px){.onboard-title-row{grid-template-columns:1fr;justify-items:center;row-gap:12px}.onboard-title-row>.onboard-title,.onboard-title-row>.lang-toggle{grid-column:1;justify-self:center}}
+@media(max-width:540px){body.onboarding-mode #onboardingGate{padding-top:14px}body.onboarding-mode .onboard-card{min-height:unset;padding:14px}.onboard-title-row{row-gap:10px}}
