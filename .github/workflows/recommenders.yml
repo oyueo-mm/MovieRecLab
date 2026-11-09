@@ -22,3 +22,7 @@ jobs:
         run: node tests/visualization.test.js
       - name: Verify rating popup, search scroll and taste presets
         run: node tests/preset-rating.test.js
+      - name: Install DOM test dependencies
+        run: npm install --no-save --no-package-lock jsdom@26
+      - name: Exercise preset, rating dialog and search pagination in a DOM
+        run: node tests/ui-dom-integration.test.js
