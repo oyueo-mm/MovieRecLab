@@ -98,7 +98,7 @@ for(let d=0;d<k;d++){
 let v=Float64Array.from({length:I},()=>r()-.5),u=new Float64Array(U);
 for(let iteration=0;iteration<7;iteration++){
 u.fill(0);for(const [uid,i,rate] of p.rows)u[uid]+=(rate-p.mean)*v[i];
-let un=Math.hypot(...u.slice(0,Math.min(800,u.length)));if(un<1e-10)un=1;for(let x=0;x<U;x++)u[x]/=un;
+let un=0;for(let x=0;x<U;x++)un+=u[x]*u[x];un=Math.sqrt(un)||1;for(let x=0;x<U;x++)u[x]/=un;
 v.fill(0);for(const [uid,i,rate] of p.rows)v[i]+=(rate-p.mean)*u[uid];
 for(let prev=0;prev<d;prev++){let proj=0;for(let i=0;i<I;i++)proj+=v[i]*Q[i*k+prev];for(let i=0;i<I;i++)v[i]-=proj*Q[i*k+prev];}
 let vn=0;for(let i=0;i<I;i++)vn+=v[i]*v[i];vn=Math.sqrt(vn)||1;for(let i=0;i<I;i++)v[i]/=vn;
@@ -148,7 +148,7 @@ for(const seq of sequences)for(const w of seq)freq[w]++;
 let cumulative=new Float64Array(vocab),total=0;for(let i=0;i<vocab;i++){total+=Math.pow(freq[i]+.01,.75);cumulative[i]=total;}
 const sample=()=>{let v=rand()*total,l=0,h=vocab-1;while(l<h){const m=(l+h)>>1;if(cumulative[m]<v)l=m+1;else h=m;}return l;};
 function update(a,b,label,rate){let x=dot(A,a,B,b,k),e=(label-logistic(x))*rate;for(let d=0;d<k;d++){const ia=a*k+d,ib=b*k+d,old=A[ia];A[ia]+=e*B[ib];B[ib]+=e*old;}}
-for(let epoch=0;epoch<3;epoch++)for(const seq of sequences)for(let t=0;t<seq.length;t++){const i=seq[t];for(let off=-3;off<=3;off++){if(off===0||t+off<0||t+off>=seq.length)continue;update(i,seq[t+off],1,.018);for(let neg=0;neg<2;neg++)update(i,sample(),0,.018);}}
+for(let epoch=0;epoch<3;epoch++)for(const original of sequences){const seq=wordMode?original:original.slice();if(!wordMode)for(let a=seq.length-1;a>0;a--){const b=Math.floor(rand()*(a+1)),t=seq[a];seq[a]=seq[b];seq[b]=t;}for(let t=0;t<seq.length;t++){const i=seq[t];for(let off=-3;off<=3;off++){if(off===0||t+off<0||t+off>=seq.length)continue;update(i,seq[t+off],1,.018);for(let neg=0;neg<2;neg++)update(i,sample(),0,.018);}}}
 if(!wordMode)return{kind:'contentVec',k,Q:A};
 const Q=new Float32Array(p.films.length*k);for(let i=0;i<p.films.length;i++){const m=p.films[i],terms=m.genres.map(g=>'g:'+g).concat(m.tags.flatMap(t=>t.toLowerCase().split(/[^a-z0-9가-힣]+/).filter(x=>x.length>2).map(x=>'t:'+x))).slice(0,20).map(t=>dictionary.get(t)).filter(v=>v!==undefined);for(const t of terms)for(let d=0;d<k;d++)Q[i*k+d]+=A[t*k+d]/Math.max(1,terms.length);}
 return{kind:'contentVec',k,Q};
@@ -192,7 +192,7 @@ return{mode,fit,p};
 function foldIn(p,fit,profile,rank){
 const k=fit.k,Q=fit.Q,A=new Float64Array(k*k),b=new Float64Array(k),count=profile.length;
 for(let d=0;d<k;d++)A[d*k+d]=rank?1.8:.6;
-for(const [id,r] of profile){const i=p.fi.get(+id);if(i===undefined)continue;const target=rank?(r>=4?1:-.8):(r-3.5);
+for(const [id,r] of profile){const i=p.fi.get(+id);if(i===undefined)continue;const target=fit.nonnegative?r/5:rank?(r>=4?1:-.8):(r-3.5);
 for(let d=0;d<k;d++){const x=Q[i*k+d];b[d]+=x*target;for(let t=0;t<k;t++)A[d*k+t]+=x*Q[i*k+t];}}
 const x=ridgeSolve(A,b,k);if(fit.nonnegative)for(let d=0;d<k;d++)x[d]=Math.max(0,x[d]);if(fit.Y){let count=0;for(const [id] of profile){const j=p.fi.get(+id);if(j===undefined)continue;count++;for(let d=0;d<k;d++)x[d]+=fit.Y[j*k+d]/Math.sqrt(Math.max(1,profile.length));}}
 return x;
