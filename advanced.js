@@ -47,15 +47,17 @@ const Y=isSVDPP?matrix(I,k,rand,.04):null,G=(isFM||mode==='lightfm')?matrix(p.ng
 const filmVec=(i,d)=>{let v=Q[i*k+d];if(G)for(const g of p.genres[i])v+=G[g*k+d]/Math.sqrt(Math.max(1,p.genres[i].length));return v;};
 const lr=isNMF?.028:isIMF?.045:isBPR?.045:.018;
 for(let epoch=0;epoch<(isSVDPP?4:isBPR?4:isFM?5:6);epoch++){
+const implicitSums=isSVDPP?new Float32Array(U*k):null,implicitGrad=isSVDPP?new Float32Array(U*k):null;
+if(isSVDPP)for(let uid=0;uid<U;uid++){const h=p.hist[uid],inv=1/Math.sqrt(Math.max(1,h.length));for(const [j] of h)for(let d=0;d<k;d++)implicitSums[uid*k+d]+=Y[j*k+d]*inv;}
 for(let a=rows.length-1;a>0;a--){const b=Math.floor(rand()*(a+1)),tmp=rows[a];rows[a]=rows[b];rows[b]=tmp;}
 for(const [u,i,r] of rows){
 if(isBPR&&r<4)continue;
 if(isSVDPP){
-const h=p.hist[u],inv=1/Math.sqrt(Math.max(1,h.length)),z=new Float32Array(k);for(const [j] of h)for(let d=0;d<k;d++)z[d]+=Y[j*k+d]*inv;
+const h=p.hist[u],z=implicitSums.subarray(u*k,(u+1)*k);
 let pred=3.5+bias[i];for(let d=0;d<k;d++)pred+=(P[u*k+d]+z[d])*Q[i*k+d];const err=Math.max(-3,Math.min(3,r-pred));bias[i]+=lr*(err-.01*bias[i]);
-for(let d=0;d<k;d++){const a=u*k+d,b=i*k+d,pu=P[a],qi=Q[b];P[a]+=lr*(err*qi-.045*pu);Q[b]+=lr*(err*(pu+z[d])-.045*qi);const dy=lr*err*qi*inv/Math.max(1,h.length/15);for(const [j] of h)Y[j*k+d]+=(dy-lr*.001*Y[j*k+d]);}continue;}
-if(isBPR||isIMF){
-if(isIMF&&r<4&&rand()<.7)continue;
+for(let d=0;d<k;d++){const a=u*k+d,b=i*k+d,pu=P[a],qi=Q[b];P[a]+=lr*(err*qi-.045*pu);Q[b]+=lr*(err*(pu+z[d])-.045*qi);implicitGrad[u*k+d]+=err*qi;}continue;}
+if(isIMF){const observe=r>=4?1:0;const step=(item,label,weight)=>{let z=dot(P,u,Q,item,k),e=(label-sig(z))*lr*weight;for(let d=0;d<k;d++){const a=u*k+d,b=item*k+d,old=P[a];P[a]+=e*Q[b]-lr*.015*old;Q[b]+=e*old-lr*.015*Q[b];}};step(i,observe,observe?1:.35);if(observe){let j=Math.floor(rand()*I),tries=0;while(p.rated[u].has(j)&&tries++<15)j=Math.floor(rand()*I);step(j,0,.65);}continue;}
+if(isBPR){
 let j=Math.floor(rand()*I),tries=0;while(p.rated[u].has(j)&&tries++<15)j=Math.floor(rand()*I);if(j===i)continue;
 const z=new Float32Array(k),t=new Float32Array(k);
 for(let d=0;d<k;d++){z[d]=filmVec(i,d);t[d]=filmVec(j,d);}
@@ -67,10 +69,29 @@ const target=isNMF?r/5:r,err=Math.max(-3,Math.min(3,target-pred));
 if(!isNMF)bias[i]+=lr*(err-.02*bias[i]);
 for(let d=0;d<k;d++){const a=u*k+d,b=i*k+d,old=P[a];P[a]+=lr*(err*z[d]-.03*old);Q[b]+=lr*(err*old-.03*Q[b]);if(isNMF){P[a]=Math.max(0,P[a]);Q[b]=Math.max(0,Q[b]);}if(G)for(const g of p.genres[i])G[g*k+d]+=lr*(err*old/Math.sqrt(Math.max(1,p.genres[i].length))-.03*G[g*k+d]);}
 }
+if(isSVDPP)for(let uid=0;uid<U;uid++){const hist=p.hist[uid],inv=1/Math.sqrt(Math.max(1,hist.length));for(const [j] of hist)for(let d=0;d<k;d++){const idx=j*k+d;Y[idx]+=lr*(implicitGrad[uid*k+d]*inv-.01*Y[idx]);}}
 }
 if(G)for(let i=0;i<I;i++)for(let d=0;d<k;d++)Q[i*k+d]=filmVec(i,d);
 return{kind:'factors',k,Q,bias,Y,nonnegative:isNMF,rank:isBPR||isIMF||mode==='lightfm'};
 }
+
+function trueFM(p){
+const rand=rng(573),U=p.uids.length,I=p.films.length,k=10,genres=p.ng,years=16,n=U+I+genres+years,V=matrix(n,k,rand,.075),w=new Float32Array(n);
+const movieFeats=p.films.map((film,i)=>{const g=p.genres[i],y=Math.max(0,Math.min(15,Math.floor(((film.year||2000)-1880)/10)));return[[U+i,1],...g.map(t=>[U+I+t,1/Math.sqrt(Math.max(1,g.length))]),[U+I+genres+y,.5]];});
+const rows=p.rows.slice();
+for(let epoch=0;epoch<5;epoch++){for(let a=rows.length-1;a>0;a--){const b=Math.floor(rand()*(a+1)),t=rows[a];rows[a]=rows[b];rows[b]=t;}
+for(const [u,i,r] of rows){const fs=[[u,1],...movieFeats[i]],sum=new Float64Array(k);let pred=3.5;
+for(const [f,x] of fs){pred+=w[f]*x;for(let d=0;d<k;d++)sum[d]+=V[f*k+d]*x;}
+for(let d=0;d<k;d++){let squares=0;for(const [f,x] of fs)squares+=Math.pow(V[f*k+d]*x,2);pred+=(sum[d]*sum[d]-squares)/2;}
+const err=Math.max(-3,Math.min(3,r-pred)),lr=.018;
+for(const [f,x] of fs){w[f]+=lr*(err*x-.02*w[f]);for(let d=0;d<k;d++){const ix=f*k+d,old=V[ix];V[ix]+=lr*(err*(sum[d]*x-old*x*x)-.03*old);}}}}
+const Q=new Float32Array(I*k),bias=new Float32Array(I);
+for(let i=0;i<I;i++){const fs=movieFeats[i],sum=new Float64Array(k);let intercept=0;
+for(const [f,x] of fs){intercept+=w[f]*x;for(let d=0;d<k;d++)sum[d]+=V[f*k+d]*x;}
+for(let d=0;d<k;d++){let squares=0;for(const [f,x] of fs)squares+=(V[f*k+d]*x)**2;intercept+=(sum[d]*sum[d]-squares)/2;Q[i*k+d]=sum[d];}bias[i]=intercept;}
+return{kind:'factors',k,Q,bias,rank:false};
+}
+
 function truncatedSVD(p){
 const I=p.films.length,U=p.uids.length,k=12,Q=new Float32Array(I*k),P=new Float32Array(U*k),r=rng(6628);
 for(let d=0;d<k;d++){
@@ -88,7 +109,7 @@ return{kind:'factors',k,Q,bias:new Float32Array(I),rank:false};
 }
 function pairwiseCounts(p){
 const I=p.films.length,counts=new Float32Array(I),pair=new Map();
-for(const likes of p.pos){const take=likes.length>130?likes.slice(0,130):likes;for(const i of take)counts[i]++;
+for(const likes of p.pos){const take=likes.length>65?Array.from({length:65},(_,i)=>likes[Math.floor(i*(likes.length-1)/64)]):likes;for(const i of take)counts[i]++;
 for(let a=0;a<take.length;a++)for(let b=a+1;b<take.length;b++){const x=take[a],y=take[b],key=x<y?x*I+y:y*I+x;pair.set(key,(pair.get(key)||0)+1);}}
 return{kind:'association',counts,pair,n:p.uids.length};
 }
@@ -162,6 +183,7 @@ else if(mode==='svd')fit=truncatedSVD(p);
 else if(mode==='ease'||mode==='slim')fit=pairLinear(p,mode);
 else if(mode==='lda')fit=topicModel(p);
 else if(mode==='word2vec'||mode==='item2vec')fit=skipgram(p,mode);
+else if(mode==='fm')fit=trueFM(p);
 else if(mode==='ncf')fit=ncf(p);
 else if(mode==='lightgcn')fit=lightGCN(p);
 else fit=factorModel(p,mode);
@@ -177,7 +199,7 @@ return x;
 }
 function regScores(p,profile){
 const k=p.ng+2,A=new Float64Array(k*k),b=new Float64Array(k),rows=[];
-for(const [id,r] of profile){const i=p.fi.get(+id);if(i===undefined)continue;const f=new Float64Array(k);f[0]=1;for(const g of p.genres[i])f[2+g]=1/Math.sqrt(Math.max(1,p.genres[i].length));f[1]=(p.films[i].year||2000-2000)/130;rows.push([f,r-3.5]);}
+for(const [id,r] of profile){const i=p.fi.get(+id);if(i===undefined)continue;const f=new Float64Array(k);f[0]=1;for(const g of p.genres[i])f[2+g]=1/Math.sqrt(Math.max(1,p.genres[i].length));f[1]=((p.films[i].year||2000)-2000)/130;rows.push([f,r-3.5]);}
 for(let a=0;a<k;a++)A[a*k+a]=a===0?2:6;
 for(const [x,y] of rows)for(let d=0;d<k;d++){b[d]+=x[d]*y;for(let j=0;j<k;j++)A[d*k+j]+=x[d]*x[j];}
 const w=ridgeSolve(A,b,k);
