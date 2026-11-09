@@ -3,7 +3,7 @@ const E=window.MovieRecEngine,L=window.MovieRecI18N,$=id=>document.getElementByI
 const titles={recommend:['내 취향 영화 추천','영화를 평가하고 추천 방식별 결과를 살펴보세요.'],compare:['추천 알고리즘 비교','동일한 취향 정보에 따른 추천 영화의 차이를 비교합니다.'],analysis:['MovieLens 데이터 분석','실제 영화 평점의 구조와 추천의 어려움을 시각화합니다.'],evaluate:['추천 성능 평가','학습에서 제외한 사용자의 미래 평점을 예측해 비교합니다.'],guide:['추천 알고리즘 설명','다섯 가지 추천 방식의 원리와 한계를 확인합니다.']};
 const A=window.MovieRecAdvanced;const baseModes={popular:'인기 기반',content:'콘텐츠 기반',user:'사용자 KNN',item:'아이템 KNN',hybrid:'하이브리드'};const modes={...baseModes,...A.labels};const evalNames={...modes,'hybrid-previous':'개선 전 하이브리드'};
 const descriptions={popular:'전체 평점과 평가 횟수를 고려합니다. 개인화하지 않는 비교 기준선입니다.',content:'입력한 영화의 장르·태그와 평점으로 선호도를 계산합니다.',user:'평점 패턴이 비슷한 기존 사용자의 영화 평가를 활용합니다.',item:'같은 사용자에게 비슷한 평가를 받은 영화를 활용합니다.',hybrid:'좋아한 영화를 함께 높게 평가한 패턴과 인기·유사 사용자 정보를 결합합니다.',...A.descriptions};
-const DEFAULT_MODE='popular';
+const DEFAULT_MODE='ease';
 const state={model:null,movies:[],ratings:[],quality:null,tagRows:0,rated:new Map(),mode:DEFAULT_MODE,recs:[],evalWorker:null,loaded:false,lastCompare:null,language:'ko',activeDetail:null,advancedWorker:null,recommendSeq:0,compareSeq:0};
 
  function titleOf(movie){return L.displayTitle(movie,state.language);}
@@ -27,7 +27,7 @@ function renderRated(){const data=[...state.rated];$('ratedCount').textContent=d
 function rate(id){if(!state.model.movieById.has(id))return;if(!state.rated.has(id))state.rated.set(id,4);persist();renderSearch();renderRated();if(!$('recommendWorkspace').hidden)recommendNow();}
 function currentProfile(){return [...state.rated.entries()];}
 const advancedPending=new Map();let advancedId=0;
-$('algoChoices').insertAdjacentHTML('beforeend',A.modes.map(mode=>'<button class="btn" type="button" data-algo="'+mode+'" aria-pressed="false">'+esc(A.labels[mode])+'</button>').join(''));
+$('algoChoices').insertAdjacentHTML('beforeend',A.modes.map(mode=>'<button class="btn'+(mode===DEFAULT_MODE?' is-active':'')+'" type="button" data-algo="'+mode+'" aria-pressed="'+(mode===DEFAULT_MODE?'true':'false')+'">'+esc(A.labels[mode])+'</button>').join(''));
 document.querySelector('#guide .pane').insertAdjacentHTML('afterbegin','<details style="margin-bottom:18px"><summary style="cursor:pointer;font-weight:700">고급 추천 알고리즘 17종 · 원리 보기</summary><div style="margin-top:12px">'+A.modes.map(mode=>'<div class="guide-section"><h2>'+esc(A.labels[mode])+'</h2><p>'+esc(A.descriptions[mode])+'</p></div>').join('')+'</div></details>');
 function initAdvancedWorker(){
 for(const job of advancedPending.values())job.reject(Error('데이터 변경으로 요청이 취소되었습니다.'));advancedPending.clear();
