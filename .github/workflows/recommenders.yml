@@ -18,3 +18,5 @@ jobs:
         run: node tests/advanced.test.js
       - name: Verify unified algorithm selector
         run: node tests/ui-selection.test.js
+      - name: Verify real recommendation visualizations
+        run: node tests/visualization.test.js
