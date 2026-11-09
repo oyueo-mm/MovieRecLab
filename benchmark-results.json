@@ -1,0 +1,244 @@
+{
+  "dataset": "MovieLens ml-latest-small",
+  "measuredAt": "2026-11-09",
+  "runUrl": "https://github.com/oyueo-mm/MovieRecLab/actions/runs/42584381573",
+  "trainUsers": 566,
+  "trainRatings": 92024,
+  "heldoutUsers": 44,
+  "evaluatedUsers": 43,
+  "profileCount": 5,
+  "protocol": "학습에서 44명 완전 제외, 각 평가 사용자 초기 5개 평점 입력, 시간순 마지막 20% 중 평점 4 이상을 관련 영화로 정의",
+  "caveat": "단일 홀드아웃 탐색 실험입니다. 데이터와 실험 조건에 종속되며 모델 간 우월성·통계적 유의성을 보장하지 않습니다. EASE 및 SLIM은 인기 상위 125개 영화에서만 학습합니다.",
+  "results": [
+    {
+      "mode": "popular",
+      "ndcg": 0.04481873762860444,
+      "recall": 0.02674505615204698,
+      "hit": 0.2558139534883721,
+      "coverage": 14,
+      "evaluated": 43,
+      "nonzero": 11,
+      "seconds": 0
+    },
+    {
+      "mode": "content",
+      "ndcg": 0.04275786934067443,
+      "recall": 0.023286500843499255,
+      "hit": 0.20930232558139536,
+      "coverage": 188,
+      "evaluated": 43,
+      "nonzero": 9,
+      "seconds": 0
+    },
+    {
+      "mode": "user",
+      "ndcg": 0.04011420358816345,
+      "recall": 0.024994209589856042,
+      "hit": 0.2558139534883721,
+      "coverage": 73,
+      "evaluated": 43,
+      "nonzero": 11,
+      "seconds": 1
+    },
+    {
+      "mode": "item",
+      "ndcg": 0.05720000720725943,
+      "recall": 0.02448155118316366,
+      "hit": 0.20930232558139536,
+      "coverage": 228,
+      "evaluated": 43,
+      "nonzero": 9,
+      "seconds": 2
+    },
+    {
+      "mode": "hybrid-previous",
+      "ndcg": 0.05194549048084933,
+      "recall": 0.03451557622828747,
+      "hit": 0.3023255813953488,
+      "coverage": 145,
+      "evaluated": 43,
+      "nonzero": 13,
+      "seconds": 3
+    },
+    {
+      "mode": "hybrid",
+      "ndcg": 0.04709349217019133,
+      "recall": 0.035293764685455635,
+      "hit": 0.2558139534883721,
+      "coverage": 58,
+      "evaluated": 43,
+      "nonzero": 11,
+      "seconds": 2
+    },
+    {
+      "mode": "association",
+      "ndcg": 0.04664321668577105,
+      "recall": 0.04607168755298179,
+      "hit": 0.2558139534883721,
+      "coverage": 158,
+      "evaluated": 43,
+      "nonzero": 11,
+      "seconds": 0
+    },
+    {
+      "mode": "regression",
+      "ndcg": 0.021719025056934294,
+      "recall": 0.007764137886896905,
+      "hit": 0.09302325581395349,
+      "coverage": 333,
+      "evaluated": 43,
+      "nonzero": 4,
+      "seconds": 0
+    },
+    {
+      "mode": "svd",
+      "ndcg": 0.04030460952016979,
+      "recall": 0.02223639222135843,
+      "hit": 0.23255813953488372,
+      "coverage": 25,
+      "evaluated": 43,
+      "nonzero": 10,
+      "seconds": 1
+    },
+    {
+      "mode": "nmf",
+      "ndcg": 0.03183856316558907,
+      "recall": 0.013996914780534596,
+      "hit": 0.13953488372093023,
+      "coverage": 17,
+      "evaluated": 43,
+      "nonzero": 6,
+      "seconds": 0
+    },
+    {
+      "mode": "mf",
+      "ndcg": 0.010370272885252352,
+      "recall": 0.007032063046833797,
+      "hit": 0.13953488372093023,
+      "coverage": 145,
+      "evaluated": 43,
+      "nonzero": 6,
+      "seconds": 0
+    },
+    {
+      "mode": "imf",
+      "ndcg": 0.06472213859795314,
+      "recall": 0.03703455075916704,
+      "hit": 0.27906976744186046,
+      "coverage": 80,
+      "evaluated": 43,
+      "nonzero": 12,
+      "seconds": 0
+    },
+    {
+      "mode": "bpr",
+      "ndcg": 0.0462755316107028,
+      "recall": 0.02506694650000112,
+      "hit": 0.23255813953488372,
+      "coverage": 94,
+      "evaluated": 43,
+      "nonzero": 10,
+      "seconds": 0
+    },
+    {
+      "mode": "fm",
+      "ndcg": 0.022490442653837473,
+      "recall": 0.014518076308219725,
+      "hit": 0.13953488372093023,
+      "coverage": 179,
+      "evaluated": 43,
+      "nonzero": 6,
+      "seconds": 2
+    },
+    {
+      "mode": "lda",
+      "ndcg": 0.0173443492420041,
+      "recall": 0.012189298712025396,
+      "hit": 0.06976744186046512,
+      "coverage": 355,
+      "evaluated": 43,
+      "nonzero": 3,
+      "seconds": 0
+    },
+    {
+      "mode": "word2vec",
+      "ndcg": 0.024648361284621775,
+      "recall": 0.013988088095295238,
+      "hit": 0.13953488372093023,
+      "coverage": 262,
+      "evaluated": 43,
+      "nonzero": 6,
+      "seconds": 0
+    },
+    {
+      "mode": "item2vec",
+      "ndcg": 0.028153066528292216,
+      "recall": 0.018745427506935676,
+      "hit": 0.20930232558139536,
+      "coverage": 215,
+      "evaluated": 43,
+      "nonzero": 9,
+      "seconds": 0
+    },
+    {
+      "mode": "svdpp",
+      "ndcg": 0.0300488288231613,
+      "recall": 0.01483613394759992,
+      "hit": 0.20930232558139536,
+      "coverage": 146,
+      "evaluated": 43,
+      "nonzero": 9,
+      "seconds": 0
+    },
+    {
+      "mode": "lightfm",
+      "ndcg": 0.04004259235241691,
+      "recall": 0.027594170155729656,
+      "hit": 0.20930232558139536,
+      "coverage": 233,
+      "evaluated": 43,
+      "nonzero": 9,
+      "seconds": 1
+    },
+    {
+      "mode": "ease",
+      "ndcg": 0.07597956371229742,
+      "recall": 0.04910948459447897,
+      "hit": 0.3488372093023256,
+      "coverage": 99,
+      "evaluated": 43,
+      "nonzero": 15,
+      "seconds": 0
+    },
+    {
+      "mode": "slim",
+      "ndcg": 0.06718491512957322,
+      "recall": 0.034178194953887,
+      "hit": 0.3023255813953488,
+      "coverage": 96,
+      "evaluated": 43,
+      "nonzero": 13,
+      "seconds": 0
+    },
+    {
+      "mode": "ncf",
+      "ndcg": 0.0576994634364205,
+      "recall": 0.04286410412274013,
+      "hit": 0.27906976744186046,
+      "coverage": 14,
+      "evaluated": 43,
+      "nonzero": 12,
+      "seconds": 1
+    },
+    {
+      "mode": "lightgcn",
+      "ndcg": 0,
+      "recall": 0,
+      "hit": 0,
+      "coverage": 411,
+      "evaluated": 43,
+      "nonzero": 0,
+      "seconds": 0
+    }
+  ]
+}
