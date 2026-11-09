@@ -1,8 +1,6 @@
 name: Benchmark recommendation models
 on:
-  push:
-    branches:
-      - feat/instant-algorithm-switch-and-default
+  workflow_dispatch:
 jobs:
   benchmark:
     runs-on: ubuntu-latest
