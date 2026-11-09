@@ -1,0 +1,16 @@
+name: Benchmark recommendation models
+on:
+  workflow_dispatch:
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run MovieLens 44-user holdout comparison
+        run: node tests/model-benchmark.js

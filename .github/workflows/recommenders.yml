@@ -16,3 +16,5 @@ jobs:
           node-version: '22'
       - name: Verify recommendation engines and workers
         run: node tests/advanced.test.js
+      - name: Verify unified algorithm selector
+        run: node tests/ui-selection.test.js
