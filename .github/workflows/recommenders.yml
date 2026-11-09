@@ -20,3 +20,5 @@ jobs:
         run: node tests/ui-selection.test.js
       - name: Verify real recommendation visualizations
         run: node tests/visualization.test.js
+      - name: Verify rating popup, search scroll and taste presets
+        run: node tests/preset-rating.test.js
