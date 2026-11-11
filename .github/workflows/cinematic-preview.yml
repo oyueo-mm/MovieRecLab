@@ -1,0 +1,36 @@
+name: Cinematic preview regression
+on:
+  push:
+    branches:
+      - feat/cinematic-redesign-v1
+  pull_request:
+    paths:
+      - 'cinematic/**'
+      - 'tests/cinematic-integration.test.js'
+      - '.github/workflows/cinematic-preview.yml'
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate new shell JS and isolated routes
+        run: |
+          node --check cinematic/shell.js
+          node tests/cinematic-integration.test.js
+      - name: Verify original recommendation and selection algorithms
+        run: |
+          node tests/advanced.test.js
+          node tests/ui-selection.test.js
+          node tests/preset-rating.test.js
+          node tests/visualization.test.js
+          node tests/i18n.test.js
+      - name: Install DOM test dependency
+        run: npm install --no-save --no-package-lock jsdom@26
+      - name: Verify existing UI behavior in the DOM
+        run: node tests/ui-dom-integration.test.js
