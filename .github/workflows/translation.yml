@@ -1,0 +1,42 @@
+name: Korean title translations
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'i18n.js'
+      - 'ko-titles.js'
+      - 'scripts/build_ko_titles.py'
+      - '.github/workflows/translation.yml'
+      - 'tests/i18n.test.js'
+  workflow_dispatch:
+jobs:
+  expand-korean-titles:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build larger Korean title map from historical movie metadata
+        run: python scripts/build_ko_titles.py
+      - name: Test title matching and original-language fallback
+        run: node tests/i18n.test.js
+      - name: Run recommendation engine regressions
+        run: |
+          node tests/advanced.test.js
+          node tests/ui-selection.test.js
+          node tests/visualization.test.js
+          node tests/preset-rating.test.js
+      - name: Commit expanded titles only when changed
+        run: |
+          if ! git diff --quiet -- ko-titles.js; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add ko-titles.js
+            git commit -m 'data: expand Korean movie titles from exact metadata matches'
+            git push
+          fi
