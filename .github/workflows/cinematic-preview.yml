@@ -9,6 +9,7 @@ on:
       - 'cinematic/**'
       - 'tests/cinematic-integration.test.js'
       - 'tests/cinematic-scroll-dom.test.js'
+      - 'tests/cinematic-minimal-copy.test.js'
       - '.github/workflows/cinematic-preview.yml'
   workflow_dispatch:
 jobs:
@@ -38,3 +39,4 @@ jobs:
         run: |
           node tests/ui-dom-integration.test.js
           node tests/cinematic-scroll-dom.test.js
+          node tests/cinematic-minimal-copy.test.js
