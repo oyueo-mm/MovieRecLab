@@ -38,3 +38,11 @@ Feature branch: feat/cinematic-redesign-v1
 - Keyboard scrolling remains native. Reduced-motion preference uses an instant scene change instead of animated movement.
 - The original route and recommendation engine remain untouched; the prior cinematic release is preserved by `backup/pre-scroll-transition-2026-11-12` at `a9dcbbb8c8989dde34d2573e652f5b99ea81e294`.
 - Revert the scroll-transition PR to restore the previous cinematic entrance. Open `/MovieRecLab/` to bypass all cinematic UI changes.
+
+## Minimal text pass (2026-11-12)
+
+- Decorative intro step numbers, introductory rule, visible Start caption, menu sequence numbers, redundant menu headings and footer copy are removed. The icon-only start control retains an accessible label. Browser tab title shortened to `영화 추천`; browser/Android system chrome is controlled by the browser, not this page.
+- The cinematic skin hides supporting genres/original titles on rating cards and redundant recommendation microcopy, but retains movie names, search, progress, stars, algorithms, charts and data values. Full recommendation details remain accessible on selection.
+- Research notes, evaluation limitations, detailed model descriptions, attribution and visualization explanations are collapsed under accessible native `details`, rather than deleted.
+- Only the cinematic route is modified. Original non-cinematic UI is unchanged. Previous release is preserved at `backup/pre-text-minimal-2026-11-12`, commit `5549e67ba1459beb4bc30b07fc71dbae63151293`.
+- Revert the minimal-copy PR to return to the previous cinematic layout, or open `/MovieRecLab/` for original design.
