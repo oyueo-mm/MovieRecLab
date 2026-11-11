@@ -1,0 +1,45 @@
+'use strict';
+(function(){
+  const root=document.getElementById('cinematic'),frame=document.getElementById('appFrame'),menu=document.getElementById('menuPanel'),veil=document.getElementById('menuVeil'),label=document.getElementById('stageLabel'),alertNode=document.getElementById('alert');
+  const $=id=>document.getElementById(id);
+  const photographs={
+    space:'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=900&q=82&auto=format&fit=crop',
+    future:'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=900&q=82&auto=format&fit=crop',
+    fantasy:'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=900&q=82&auto=format&fit=crop',
+    romance:'https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=900&q=82&auto=format&fit=crop',
+    adventure:'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=900&q=82&auto=format&fit=crop',
+    drama:'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=900&q=82&auto=format&fit=crop',
+    mystery:'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=900&q=82&auto=format&fit=crop',
+    animation:'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=900&q=82&auto=format&fit=crop',
+    default:'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=900&q=82&auto=format&fit=crop'
+  };
+  const tabNames={recommend:'영화 추천',compare:'알고리즘 비교',analysis:'데이터 분석',visualize:'추천 시각화',evaluate:'성능 평가',guide:'알고리즘 설명'};
+  let doc=null,observer=null,motionOff=window.matchMedia('(prefers-reduced-motion: reduce)').matches,curtainTimer=0,alertTimer=0,menuOpen=false;
+  function notice(value){alertNode.textContent=value;alertNode.hidden=false;clearTimeout(alertTimer);alertTimer=setTimeout(()=>{alertNode.hidden=true;},4200);}
+  function openMenu(){menuOpen=true;root.classList.add('menu-open');veil.hidden=false;menu.setAttribute('aria-hidden','false');$('openMenu').setAttribute('aria-expanded','true');$('closeMenu').focus();}
+  function closeMenu(){menuOpen=false;root.classList.remove('menu-open');veil.hidden=true;menu.setAttribute('aria-hidden','true');$('openMenu').setAttribute('aria-expanded','false');$('openMenu').focus();}
+  function curtain(){if(motionOff)return;root.classList.add('is-transitioning');clearTimeout(curtainTimer);curtainTimer=setTimeout(()=>root.classList.remove('is-transitioning'),770);}
+  function stage(next){root.dataset.stage=next;label.textContent=next==='intro'?'':currentPage();if(next==='app'&&doc){try{frame.contentWindow.focus();}catch(e){}}}
+  function currentPage(){if(!doc)return '영화 추천';if(!doc.getElementById('onboardingGate')?.hidden)return '영화 평가';const active=doc.querySelector('.tab.active');return tabNames[active?.id]||'영화 추천';}
+  function paletteFor(text){const s=(text||'').toLowerCase();if(/interstellar|space|sci-fi|science fiction|sf|우주|공상|과학|스페이스/.test(s))return photographs.space;if(/matrix|cyber|future|아이템|미래|테크/.test(s))return photographs.future;if(/fantasy|판타지|magic|마법/.test(s))return photographs.fantasy;if(/romance|romantic|로맨스|love|사랑|뮤지컬/.test(s))return photographs.romance;if(/animation|애니메이션|children|어린이|가족/.test(s))return photographs.animation;if(/thriller|horror|mystery|스릴러|공포|미스터리|범죄/.test(s))return photographs.mystery;if(/action|adventure|액션|모험|전쟁/.test(s))return photographs.adventure;if(/drama|드라마|다큐/.test(s))return photographs.drama;return photographs.default;}
+  function decorate(node){if(!(node instanceof frame.contentWindow.HTMLElement))return;let text=node.innerText||node.textContent||'';let url=paletteFor(text);if(node.dataset.cinematicArt===url)return;node.dataset.cinematicArt=url;node.style.setProperty('--film-visual','url("'+url+'")');}
+  function syncVisuals(){if(!doc)return;doc.querySelectorAll('.onboard-card, #recResults .result-row').forEach(decorate);label.textContent=root.dataset.stage==='app'?currentPage():'';}
+  function inject(){try{doc=frame.contentDocument;if(!doc||!doc.head||!doc.body)throw new Error('원본 앱에 접근할 수 없습니다.');const style=doc.createElement('link');style.rel='stylesheet';style.href=new URL('./theme.css',window.location.href).href;style.id='cinematicTheme';doc.head.appendChild(style);if(motionOff)doc.body.classList.add('cinematic-reduce');observer=new MutationObserver(syncVisuals);observer.observe(doc.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','class']});doc.addEventListener('click',e=>{if(e.target.closest('#onboardingSubmit')){curtain();setTimeout(syncVisuals,850);}else if(e.target.closest('[data-tab]')){curtain();setTimeout(syncVisuals,850);}else if(e.target.closest('#clearRatings')){setTimeout(syncVisuals,350);}},true);doc.addEventListener('change',e=>{if(e.target.id==='onboardPreset'){curtain();setTimeout(syncVisuals,700);}},true);syncVisuals();}catch(err){console.error('Cinematic theme unavailable',err);notice('새 테마를 적용하지 못했습니다. 메뉴에서 기존 UI를 열 수 있습니다.');}}
+  function goTo(tab){if(!doc){notice('원본 앱을 불러오는 중입니다.');return;}curtain();stage('app');const b=doc.querySelector('[data-tab="'+tab+'"]');if(b)b.click();else notice('선택한 화면을 찾지 못했습니다.');syncVisuals();}
+  function toggleMotion(){motionOff=!motionOff;root.classList.toggle('motion-reduced',motionOff);doc?.body.classList.toggle('cinematic-reduce',motionOff);$('toggleMotion').setAttribute('aria-pressed',String(motionOff));$('toggleMotion').querySelector('span').textContent=motionOff?'켬':'끔';}
+  function toggleLanguage(){if(!doc)return notice('영화 데이터를 불러오는 중입니다.');const en=doc.querySelector('[data-language="en"]'),ko=doc.querySelector('[data-language="ko"]');const active=doc.querySelector('.lang-btn.is-active');if(active?.dataset.language==='ko'){en?.click();$('languageLabel').textContent='원제 우선';}else{ko?.click();$('languageLabel').textContent='한국어 우선';}}
+  $('enter').addEventListener('click',()=>{curtain();stage('app');syncVisuals();});
+  $('backIntro').addEventListener('click',()=>{curtain();stage('intro');});
+  $('openMenu').addEventListener('click',openMenu);
+  $('closeMenu').addEventListener('click',closeMenu);
+  veil.addEventListener('click',closeMenu);
+  menu.querySelectorAll('[data-target]').forEach(b=>b.addEventListener('click',()=>{let id=b.dataset.target;closeMenu();goTo(id);}));
+  $('toggleMotion').addEventListener('click',toggleMotion);
+  $('toggleLanguage').addEventListener('click',toggleLanguage);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&menuOpen){e.preventDefault();closeMenu();}});
+  root.addEventListener('pointermove',e=>{if(motionOff||root.dataset.stage!=='intro')return;const r=root.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;root.style.setProperty('--camera-x',(-x*16).toFixed(1)+'px');root.style.setProperty('--camera-y',(-y*11).toFixed(1)+'px');},{passive:true});
+  root.addEventListener('pointerleave',()=>{root.style.setProperty('--camera-x','0px');root.style.setProperty('--camera-y','0px');});
+  frame.addEventListener('load',inject);
+  if(frame.contentDocument?.readyState==='complete')inject();
+  $('toggleMotion').setAttribute('aria-pressed',String(motionOff));if(motionOff){root.classList.add('motion-reduced');$('toggleMotion').querySelector('span').textContent='켬';}
+})();
