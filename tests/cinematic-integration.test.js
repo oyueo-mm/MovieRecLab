@@ -31,3 +31,12 @@ assert.match(read('index.html'),/id="onboardingGate"/);
 assert.match(read('index.html'),/id="recommendWorkspace"/);
 assert.match(read('index.html'),/id="recResults"/);
 console.log('Cinematic integration smoke checks passed. Original recommendation engine is untouched.');
+
+assert.match(shell,/id="sceneViewport"/,'pinned camera viewport required');
+assert.match(shell,/id="storyTrack"/,'native scrolling must drive story');
+assert.match(js,/root\.addEventListener\('scroll',scheduleScroll/,'scroll must drive scene progress');
+assert.match(js,/--camera-zoom/,'camera zoom must be tied to scroll');
+assert.match(js,/--app-opacity/,'rating reveal must track scroll');
+assert.match(js,/function setupFrameReturn/,'scrolling up must support returning to intro');
+assert.match(css,/position:sticky/,'scene must stay pinned during transition');
+assert.match(css,/\.story-scroll-track/,'scene transition requires scroll distance');
