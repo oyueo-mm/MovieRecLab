@@ -29,3 +29,12 @@ Feature branch: feat/cinematic-redesign-v1
 - Atmospheric Unsplash photos can fail while offline. The base UI remains functional.
 - Transitions are camera-like CSS presentation, not actual freely navigable 3D space.
 - Check high-DPI mobile performance in a real browser; reduced-motion and responsive fallbacks are included.
+
+## Scroll-driven entrance (2026-11-12)
+
+- The entrance and original rating application now share a pinned scene viewport. Native vertical scrolling changes a camera zoom, soft focus, fade and reveal continuously, rather than swapping two pages.
+- One downward mouse-wheel gesture on the entrance starts a smooth descent; touch swiping scrubs the same timeline. The original Start button still reaches the rating screen without reloading.
+- Return to the entrance with the top-left arrow, or scroll upward while the embedded app is already at the top and no dialog is open.
+- Keyboard scrolling remains native. Reduced-motion preference uses an instant scene change instead of animated movement.
+- The original route and recommendation engine remain untouched; the prior cinematic release is preserved by `backup/pre-scroll-transition-2026-11-12` at `a9dcbbb8c8989dde34d2573e652f5b99ea81e294`.
+- Revert the scroll-transition PR to restore the previous cinematic entrance. Open `/MovieRecLab/` to bypass all cinematic UI changes.

@@ -3,10 +3,12 @@ on:
   push:
     branches:
       - feat/cinematic-redesign-v1
+      - feat/cinematic-scroll-transition
   pull_request:
     paths:
       - 'cinematic/**'
       - 'tests/cinematic-integration.test.js'
+      - 'tests/cinematic-scroll-dom.test.js'
       - '.github/workflows/cinematic-preview.yml'
   workflow_dispatch:
 jobs:
@@ -33,4 +35,6 @@ jobs:
       - name: Install DOM test dependency
         run: npm install --no-save --no-package-lock jsdom@26
       - name: Verify existing UI behavior in the DOM
-        run: node tests/ui-dom-integration.test.js
+        run: |
+          node tests/ui-dom-integration.test.js
+          node tests/cinematic-scroll-dom.test.js
