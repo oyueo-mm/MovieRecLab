@@ -31,6 +31,10 @@ jobs:
           node tests/ui-selection.test.js
           node tests/visualization.test.js
           node tests/preset-rating.test.js
+      - name: Install DOM test dependencies
+        run: npm install --no-save --no-package-lock jsdom@26
+      - name: Verify rating dialog, searches and language UI in DOM
+        run: node tests/ui-dom-integration.test.js
       - name: Commit expanded titles only when changed
         run: |
           if ! git diff --quiet -- ko-titles.js; then
