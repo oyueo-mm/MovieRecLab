@@ -26,6 +26,7 @@ on:
       - 'scripts/benchmark_v11.py'
       - 'tests/v11-inference.test.js'
       - 'tests/v11-artifact.test.js'
+      - 'tests/v11-production.test.js'
       - 'engine.js'
       - 'tests/quality-ab-live.js'
       - 'tests/poster-recovery.test.js'
@@ -83,6 +84,7 @@ jobs:
           node tests/v10-artifact.test.js
           node tests/v11-inference.test.js
           node tests/v11-artifact.test.js
+          node tests/v11-production.test.js
       - name: Verify existing recommendation algorithms
         run: |
           node tests/advanced.test.js
