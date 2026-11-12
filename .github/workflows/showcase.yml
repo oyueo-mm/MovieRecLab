@@ -4,6 +4,7 @@ on:
     branches:
       - feat/showcase-ui-v2
       - feat/showcase-default-home
+      - feat/showcase-netflix-ui
   pull_request:
     paths:
       - 'showcase/**'
