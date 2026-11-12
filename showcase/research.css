@@ -160,3 +160,15 @@ body.showcase-research .lang-btn.is-active{background:#e9eff2;color:#14191d}
 @media(max-width:1000px){body.showcase-research .compare-grid{grid-template-columns:repeat(5,245px)}body.showcase-research .content{padding:30px 22px 85px!important}body.showcase-research .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){body.showcase-research .content{padding:18px 14px 95px!important}body.showcase-research .pane{padding:18px 15px}body.showcase-research .pane h2,body.showcase-research #analyticsLab .eda-top h2{font-size:25px}body.showcase-research .pane-head{flex-wrap:wrap;align-items:flex-start}body.showcase-research .compare-grid{grid-template-columns:repeat(5,225px);gap:10px}body.showcase-research .compare-card{min-width:220px}body.showcase-research .eda-tabs{display:flex;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}body.showcase-research .eda-tabs button{flex:0 0 auto}body.showcase-research .eda-two,body.showcase-research .chart-grid{grid-template-columns:1fr}body.showcase-research .eda-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}body.showcase-research .viz-tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}body.showcase-research .viz-tabs button{white-space:nowrap}body.showcase-research .viz-plot{min-height:270px}body.showcase-research #evaluate .horizontal{align-items:stretch;justify-content:flex-start}body.showcase-research .evaluation-table{min-width:585px}body.showcase-research .compare-item{min-height:105px}body.showcase-research .guide-disclosure summary{font-size:15px}}
 @media(prefers-reduced-motion:reduce){body.showcase-research *,body.showcase-research *:before,body.showcase-research *:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Keep SVG axes legible: the original analytic plots use light-theme SVG presentation attributes. */
+body.showcase-research .eda-svgscroll svg text{fill:#d9e2e8!important}
+body.showcase-research .eda-svgscroll svg line[stroke="#edf1f8"],body.showcase-research .eda-svgscroll svg line[stroke="#edf0f7"],body.showcase-research .eda-svgscroll svg line[stroke="#f0f2f8"]{stroke:#374651}
+body.showcase-research .eda-svgscroll svg line[stroke="#aebbcf"],body.showcase-research .eda-svgscroll svg line[stroke="#b6bfce"]{stroke:#60717c}
+body.showcase-research .heatmap span{background:#26333c}
+body.showcase-research .heatmap span.low{background:#455e7d}
+body.showcase-research .heatmap span.mid{background:#668ebf}
+body.showcase-research .heatmap span.filled{background:#91b8eb}
+body.showcase-research .eda-matrix td[style*="background"]{color:#10212f!important}
+body.showcase-research .eda-barcol span{color:#d0dbe1}
+body.showcase-research .chart .bar-item .track{background:#303a43}
