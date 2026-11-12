@@ -1,5 +1,21 @@
 # MovieRecLab Showcase V2 — independent, reversible
 
+## V5: real multi-row Netflix-style recommendation explorer (2026-11-12)
+
+- The initial movie-rating experience remains the original full-screen poster showcase with search, half-star ratings, per-movie undo and the existing sample presets.
+- After rating at least 3 movies, clicking 추천 보기 opens the real full-screen featured recommendation, followed by a **vertically scrollable page with 3 horizontally scrollable poster rows**:
+  1. 당신을 위한 추천: the user's actively selected recommendation model, default EASE.
+  2. 비슷한 사용자가 좋아한 영화: original User KNN model only; any popularity-fallback items are excluded, so it never falsely labels popularity as neighbor-based recommendations. The UI warns about low evidence when fewer than 5 movies are rated.
+  3. 좋아한 영화와 비슷한 영화: original Content-based similarity model, powered by genres/tags.
+- Within each row films are ordered in the **actual model recommendation rank**, descending left to right; the algorithms' scores are *not* compared across rows. Movies may legitimately appear in multiple rows. Rated titles are excluded by the underlying engine.
+- Clicking a row poster opens the chosen film's actual detail panel and that row's specific recommendation explanation. The separate 크게 보기 action promotes the selected film to the full-width hero. It does not abruptly scroll to the top on poster click.
+- The rating screen remains a single-screen poster carousel. The right-side hero poster rail is hidden **only** in results to avoid duplicating the three recommendation rows. Up/down native scrolling moves between the hero and row sections; individual rails use horizontal scroll/touch-swipe and explicit arrow buttons. A compact model selector remains on the hero.
+- Film art is always matched to each movie's real MovieLens IMDb/TMDb mapping via the existing artwork adapter, with a named fallback for unavailable posters. Missing model results remain empty, not fabricated.
+- No new model is trained and the existing data, recommendation algorithms and evaluation screens are unmodified. Only showcase/ and isolated regression/docs/CI files change.
+- Performance: per-profile secondary recommendations are cached in the same-origin bridge and refreshed only when the actual ratings change. Images are loaded as card rail items become visible. Repeated model switches invalidate only the featured row.
+- Rollback target: branch `backup/pre-multirail-v5-2026-11-12` at commit `4f4d79c1660b2986829a7ea594fe38b86bb5fc35`. Revert only the dedicated V5 PR to remove this layout while preserving all earlier work. No force pushes or modification to the recovery branch.
+
+
 ## Rating and Research V4 (2026-11-12)
 
 - Background flash fixed: artwork changes only when the selected movie ID changes. Rating and state synchronization no longer restart the same backdrop animation.
