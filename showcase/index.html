@@ -50,7 +50,7 @@
     </nav>
     <div class="settings">
       <label for="modelSelect">추천 모델</label><select id="modelSelect" aria-label="추천 알고리즘"><option value="ease">EASE</option></select>
-      <label class="v9-toggle" for="ml25mOption" title="MovieLens 25M 및 Tag Genome을 학습한 실험 모델입니다. 오프라인 평가에서 기존 추천보다 나을 수 있다는 보장은 없습니다."><span>25M 실험 추천</span><input id="ml25mOption" type="checkbox" aria-label="MovieLens 25M 실험 추천 사용" disabled></label>
+      <label for="ml25mMode" title="25M 모델의 적용 범위를 선택합니다. 기존 추천을 선택하면 V8 보조 모델을 그대로 사용합니다.">추가 추천 모델</label><select id="ml25mMode" aria-label="25M 추천 모델 적용 방식" disabled><option value="auto">검증된 25M만 적용</option><option value="v8">기존 추천 (V8)</option><option value="experimental">25M 전체 실험</option></select>
       <label for="presetSelect">빠른 평가</label><select id="presetSelect" aria-label="미리 설정된 영화 평점"><option value="">프리셋 선택</option></select>
       <button type="button" id="resetRatings">평가 초기화</button>
       <button type="button" id="motionSetting" aria-pressed="false">애니메이션 줄이기 <span>끔</span></button>
