@@ -1,0 +1,39 @@
+name: Showcase V2 regression
+on:
+  push:
+    branches:
+      - feat/showcase-ui-v2
+  pull_request:
+    paths:
+      - 'showcase/**'
+      - 'tests/showcase.test.js'
+      - '.github/workflows/showcase.yml'
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check isolated showcase scripts
+        run: |
+          node --check showcase/bridge.js
+          node --check showcase/art.js
+          node --check showcase/showcase.js
+      - name: Install DOM test dependency
+        run: npm install --no-save --no-package-lock jsdom@26
+      - name: Verify showcase ratings, posters, results and research navigation
+        run: node tests/showcase.test.js
+      - name: Verify existing recommendation algorithms
+        run: |
+          node tests/advanced.test.js
+          node tests/ui-selection.test.js
+          node tests/preset-rating.test.js
+          node tests/visualization.test.js
+          node tests/i18n.test.js
+      - name: Verify original UI DOM functionality
+        run: node tests/ui-dom-integration.test.js
