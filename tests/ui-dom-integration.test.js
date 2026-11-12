@@ -15,11 +15,11 @@ for(const p of ['engine.js','advanced.js','i18n.js','analytics.js','app.js','dem
 const $=id=>window.document.getElementById(id),click=el=>el.dispatchEvent(new window.MouseEvent('click',{bubbles:true})),change=el=>el.dispatchEvent(new window.Event('change',{bubbles:true})),sleep=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{await sleep(90);
 assert.equal($('onboardingGate').hidden,false,'first visit shows rating onboarding');
-assert.equal($('onboardPreset').options.length,7,'six presets plus placeholder');
+assert.equal($('onboardPreset').options.length,9,'eight presets plus placeholder');
 $('onboardPreset').value='scifi';change($('onboardPreset'));await sleep(80);
 assert.equal($('onboardingGate').hidden,true,'choosing a preset should close onboarding immediately');
 assert.equal($('recommendWorkspace').hidden,false,'choosing a preset should show recommendations');
-assert.equal($('ratedCount').textContent,'8편','preset must set eight actual movie ratings');
+assert.equal($('ratedCount').textContent,'12편','preset must set twelve actual movie ratings');
 assert.ok($('recResults').querySelectorAll('.result-row').length>0,'recommendations should appear after selecting preset');
 assert.equal($('searchResults').querySelectorAll('.movie-row').length,40,'movie search starts with 40 entries');
 const more=$('searchMore');assert.ok(more,'show a load more button');
