@@ -1,16 +1,174 @@
-/* Loaded only inside the same-origin original app when viewed from /showcase/.
-   It alters the research presentation, not the original algorithms or layout URL. */
-body.showcase-research{background:#f8f8f7!important;color:#1d2426;overflow-x:hidden}
-body.showcase-research .layout{display:block!important;background:#f8f8f7}
-body.showcase-research .sidebar{display:none!important}
-body.showcase-research .content{width:100%;max-width:1460px;margin:auto;padding:28px clamp(16px,4vw,64px) 80px!important}
-body.showcase-research .heading{display:none!important}
-body.showcase-research .tab{min-height:60vh}
-body.showcase-research .pane{border-radius:9px;border-color:#e3e6e8;box-shadow:0 8px 26px #1a1c1f08}
-body.showcase-research .pane h2{letter-spacing:-.035em}
-body.showcase-research .pane-head p.hint{display:none}
-body.showcase-research .eda-top p{display:none}
-body.showcase-research #visualize #vizSubtitle{color:#6b747b}
-body.showcase-research .viz-pane{max-width:1400px}
-body.showcase-research .metric{background:#fff}
-@media(max-width:700px){body.showcase-research .content{padding:16px 13px 60px!important}body.showcase-research .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}body.showcase-research .pane{padding:15px}}
+/* Research Studio V2: dark cinematic design isolated to the original application's showcase iframe. */
+/* All analysis data, graph semantics, evaluation calculations and legacy URL styles remain unchanged. */
+html:has(body.showcase-research){--ink:#f0f0ee;--muted:#a0a7ad;--line:#31393d;--blue:#e8ecec;--blue-soft:#232b2f;--surface:#151a1e;--bg:#090c0f;color-scheme:dark;background:#090c0f}
+body.showcase-research{font-family:'DM Sans','Noto Sans KR',Pretendard,system-ui,sans-serif;background:#090c0f!important;color:#f0f0ee;min-height:100vh;overflow-x:hidden;isolation:isolate}
+body.showcase-research:before{content:"";position:fixed;inset:0;z-index:-1;background-image:linear-gradient(90deg,rgba(8,11,13,.97),rgba(8,11,13,.89) 59%,rgba(8,11,13,.78)),linear-gradient(0deg,#0a0d0f,transparent 72%),var(--research-photo,linear-gradient(140deg,#182127,#0b0d0f));background-position:center,center,center 24%;background-size:cover;background-repeat:no-repeat;opacity:.62;pointer-events:none}
+body.showcase-research .layout{display:block!important;position:relative;background:transparent!important;min-height:100vh}
+body.showcase-research .sidebar,body.showcase-research .heading{display:none!important}
+body.showcase-research .content{width:100%;max-width:1570px;margin:0 auto;padding:clamp(20px,3.4vw,55px) clamp(17px,5vw,85px) 120px!important;min-width:0;position:relative;z-index:1;background:transparent}
+body.showcase-research .tab{min-height:calc(100vh - 170px);background:transparent}
+body.showcase-research h1,body.showcase-research h2,body.showcase-research h3,body.showcase-research strong{color:#f5f4f2}
+body.showcase-research .hint,body.showcase-research .subtitle,body.showcase-research .muted{color:#a5abb0}
+body.showcase-research .empty{font-size:13px;color:#bbc3c9;padding:50px 18px}
+body.showcase-research .pane,body.showcase-research .chart,body.showcase-research .eda-card,body.showcase-research .eda-metric,body.showcase-research .metric,body.showcase-research .compare-card,body.showcase-research .explain{border:1px solid #ffffff1e!important;background:rgba(19,23,26,.95)!important;box-shadow:0 15px 48px #0002!important;color:#f3f4f4}
+body.showcase-research .pane{padding:clamp(21px,2.4vw,36px);border-radius:8px}
+body.showcase-research .pane-head{gap:16px;margin-bottom:22px;align-items:center}
+body.showcase-research .pane h2,body.showcase-research #analyticsLab .eda-top h2{font-size:clamp(24px,3vw,38px);font-weight:750;letter-spacing:-.065em;line-height:1.25;color:#fafafa}
+body.showcase-research .pane h3{font-size:15px;letter-spacing:-.025em}
+body.showcase-research .pane-head p.hint,body.showcase-research #analyticsLab .eda-top p{display:none}
+body.showcase-research .btn,body.showcase-research button{transition:background .18s ease,border-color .18s ease,color .18s ease,transform .2s ease}
+body.showcase-research .btn,body.showcase-research .seg button{border-radius:5px;background:#242a2d;border:1px solid #ffffff30;color:#f1f2f0;padding:11px 16px}
+body.showcase-research .btn:hover:not(:disabled),body.showcase-research .seg button:hover{background:#384146;color:#fff}
+body.showcase-research .btn.primary{background:#f3f3f3!important;color:#101214!important;border:1px solid #f3f3f3!important;font-weight:750}
+body.showcase-research .btn.primary:hover:not(:disabled){background:#d8dadb!important;border-color:#d8dadb!important}
+body.showcase-research .btn:focus-visible,body.showcase-research button:focus-visible,body.showcase-research a:focus-visible,body.showcase-research input:focus-visible,body.showcase-research select:focus-visible{outline:2px solid #f0c88e;outline-offset:2px}
+body.showcase-research input:not([type=file]),body.showcase-research select{background:#202529!important;color:#f3f4f5!important;border:1px solid #ffffff30!important;border-radius:5px!important;box-shadow:none!important;min-height:41px;padding:9px 13px}
+body.showcase-research select option{background:#202529;color:#fafafa}
+body.showcase-research input::placeholder{color:#929da4}
+body.showcase-research .note{background:#171c20;border:1px solid #ffffff1c;border-radius:6px;color:#b2bdc3;padding:18px 20px;line-height:1.9}
+body.showcase-research .note strong{color:#e8eef0}
+body.showcase-research .status{background:#1d2930;border:1px solid #35515e;color:#d9eaf1}
+body.showcase-research .status.ok{background:#162d26;color:#b7ead0}
+body.showcase-research .status.error{background:#3b211e;color:#ffd4c5}
+body.showcase-research .tag{background:#21272b;border-color:#ffffff28;color:#e2e5e8}
+body.showcase-research .tag.blue{background:#3d4e5b;color:#f0f7ff;border-color:#597183}
+body.showcase-research a{color:#cbd6f1}
+body.showcase-research .pane hr{border-top-color:#ffffff1d}
+
+/* Algorithm comparison: film-first cards, consistent with the poster browsing surface. */
+body.showcase-research #compare>.pane{background:transparent!important;border:0!important;padding:0;box-shadow:none!important}
+body.showcase-research #compare .pane-head{margin-bottom:28px;padding:4px 0}
+body.showcase-research #compare .pane-head .btn{flex-shrink:0}
+body.showcase-research .compare-grid{grid-template-columns:repeat(5,minmax(245px,1fr));gap:16px;overflow-x:auto;scroll-snap-type:x proximity;padding:6px 3px 24px;scrollbar-color:#555d62 #161b1f}
+body.showcase-research .compare-card{border-radius:7px;padding:20px 17px;min-width:225px;scroll-snap-align:start}
+body.showcase-research .compare-card h3{font-size:18px;font-weight:750;line-height:1.5;letter-spacing:-.04em;margin:2px 0 14px;color:#f4f4f4;min-height:35px}
+body.showcase-research .compare-item{display:block;position:relative;clear:both;min-height:102px;padding:14px 0;border-top:1px solid #ffffff1c;overflow:hidden;font-size:12px;line-height:1.55;color:#f0f0f0}
+body.showcase-research .compare-item>b{color:#d5d9de!important;font-weight:600;font-size:11px;opacity:.72;margin-right:7px}
+body.showcase-research .compare-item>span:not(.tag):not(.research-film-thumb){font-size:12px;font-weight:700;line-height:1.5;color:#f8f8f8}
+body.showcase-research .compare-item .hint{margin-top:5px;line-height:1.55;font-size:10px;color:#a0a9b1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+body.showcase-research .compare-item .tag{padding:3px 6px;font-size:9px;margin:4px 0 0}
+body.showcase-research .research-film-thumb{float:left;display:grid;place-items:center;position:relative;width:56px;height:82px;margin:0 13px 0 0;border-radius:3px;overflow:hidden;background:linear-gradient(130deg,#4b555f,#1d2328);border:1px solid #ffffff2b;box-shadow:0 5px 18px #0004}
+body.showcase-research .research-film-thumb img{display:block;width:100%;height:100%;object-fit:cover}
+body.showcase-research .research-film-thumb span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:9px;font-weight:650;color:#ecedef;text-align:center;padding:5px}
+body.showcase-research .research-film-thumb:has(img:not([hidden])) span{display:none}
+
+/* Analysis: editorial data dashboard with dark metric tiles and cool analytic data accents. */
+body.showcase-research #analysis .metric-grid{margin-bottom:18px}
+body.showcase-research #analysis .metric,body.showcase-research .eda-metric{border-radius:6px;padding:23px 20px}
+body.showcase-research #analysis .metric strong,body.showcase-research .eda-metric strong{font-size:clamp(24px,2.3vw,35px);font-variant-numeric:tabular-nums;letter-spacing:-.06em}
+body.showcase-research #analysis .metric span,body.showcase-research .eda-metric span,body.showcase-research .eda-metric small{color:#acb7bd;font-size:11px}
+body.showcase-research #analyticsLab{margin:16px 0 23px}
+body.showcase-research #analyticsLab .eda-top{margin-bottom:22px}
+body.showcase-research .eda-tabs{background:#171d21;border:1px solid #ffffff24;border-radius:6px;padding:5px;gap:5px}
+body.showcase-research .eda-tabs button{background:transparent;color:#b8c1c5;border-radius:4px;padding:11px 16px}
+body.showcase-research .eda-tabs button:hover{background:#ffffff14;color:#fff}
+body.showcase-research .eda-tabs button.active{background:#eaeef1;color:#141719;box-shadow:none}
+body.showcase-research .eda-body{min-height:300px}
+body.showcase-research .eda-section-title h3{color:#f6f6f6;font-size:17px}
+body.showcase-research .eda-section-title p{color:#a0abb2}
+body.showcase-research .eda-card{border-radius:6px}
+body.showcase-research .eda-metric{background:#1b2227!important}
+body.showcase-research .eda-caption,body.showcase-research .eda-card .hint{color:#aeb7bd}
+body.showcase-research .eda-track,body.showcase-research .bar-item .track,body.showcase-research .factor-track{background:#303b43}
+body.showcase-research .eda-track>div,body.showcase-research .bar-item .fill,body.showcase-research .bar-fill{background:#729dd0}
+body.showcase-research .eda-hbar>span,body.showcase-research .eda-hbar b,body.showcase-research .bar-item .lbl,body.showcase-research .bar-item .num,body.showcase-research .bar-col span{color:#d9e0e4}
+body.showcase-research .eda-bargraph,body.showcase-research .bars{border-bottom-color:#455058}
+body.showcase-research .eda-matrix th,body.showcase-research .eda-table th{color:#d7e0e8}
+body.showcase-research .eda-matrix td{color:#152b46}
+body.showcase-research .eda-table{color:#e4ecee}
+body.showcase-research .eda-table th{background:#20272b;border-color:#ffffff27}
+body.showcase-research .eda-table td{border-color:#ffffff18}
+body.showcase-research .eda-table tr:hover td{background:#ffffff0b}
+body.showcase-research .eda-basic{margin-top:22px;background:#151b1f;border:1px solid #ffffff1e;border-radius:6px;padding:16px 22px}
+body.showcase-research .eda-basic>summary{font-size:14px;color:#f2f3f3;font-weight:700;cursor:pointer;padding:5px 0}
+body.showcase-research .chart-grid{margin-top:18px}
+body.showcase-research .chart{border-radius:6px}
+body.showcase-research .chart .hint{color:#a0acb4}
+
+/* Visualization: real MovieLens SVG remains interactive, recolored for a dark plot. */
+body.showcase-research .viz-pane{max-width:none}
+body.showcase-research .viz-pane .pane-head{margin-bottom:11px}
+body.showcase-research .viz-tabs{gap:8px;margin:15px 0 25px}
+body.showcase-research .viz-tabs button{background:#20272b;border:1px solid #ffffff2c;border-radius:5px;color:#d4dce0;padding:11px 17px;font-weight:700}
+body.showcase-research .viz-tabs button:hover{background:#323d43}
+body.showcase-research .viz-tabs button.is-active{background:#f2f4f4;color:#15191b;border-color:#f2f4f4}
+body.showcase-research #vizTitle{font-size:18px;color:#f1f1f1}
+body.showcase-research #vizSubtitle{color:#aeb9be}
+body.showcase-research .viz-metric-wrap{color:#ced5d8}
+body.showcase-research .viz-message{color:#b9c5c9}
+body.showcase-research .viz-plot{background:#10161b;border:1px solid #ffffff25;border-radius:6px;overflow:hidden;min-height:420px}
+body.showcase-research .viz-plot svg rect[fill="#fff"]{fill:#10161b}
+body.showcase-research .viz-plot svg .viz-grid{stroke:#35424a}
+body.showcase-research .viz-plot svg .viz-edge{stroke:#52636c}
+body.showcase-research .viz-plot svg .viz-point{stroke:#10161b}
+body.showcase-research .viz-plot svg .viz-point:hover,body.showcase-research .viz-plot svg .viz-point:focus{stroke:#f8f8f8}
+body.showcase-research .viz-plot svg .viz-label{fill:#e4eaef}
+body.showcase-research .viz-plot svg text{fill:#e1e7eb}
+body.showcase-research .viz-legend{color:#c1ccd3;gap:13px 20px}
+body.showcase-research .viz-explanation{border-top:1px solid #ffffff24;color:#adbac1;line-height:1.8}
+body.showcase-research .viz-perf-row{border-color:#ffffff20;color:#e1e7ea}
+body.showcase-research .viz-perf-row .viz-perf-bar{background:#2a363e}
+body.showcase-research .viz-perf-row .viz-perf-bar span{background:#7d9fd0}
+body.showcase-research .viz-perf-row.best .viz-perf-bar span{background:#d3b07b}
+body.showcase-research .viz-perf-row.best .viz-model{color:#ffdfac}
+body.showcase-research .viz-perf-value{color:#e4e9ef}
+body.showcase-research .viz-disclosure{margin-top:20px;border-top:1px solid #ffffff28;padding:13px 3px}
+body.showcase-research .viz-disclosure summary{cursor:pointer;font-size:13px;color:#dbe3e7;font-weight:700}
+body.showcase-research .viz-disclosure #vizExplanation{display:block;margin-top:12px}
+
+/* Evaluation: scorecards and table remain accessible; best model gets a subdued highlight. */
+body.showcase-research #evaluate>.pane{max-width:none}
+body.showcase-research #evaluate .horizontal{gap:13px;margin-bottom:24px!important}
+body.showcase-research #evaluate .horizontal .small{color:#ced6d9}
+body.showcase-research #evalStatus{color:#bbc5c9;margin:10px 0}
+body.showcase-research #evaluationResults .metric-grid{margin-top:15px}
+body.showcase-research #evaluationResults .metric{background:#1f272c!important;border-radius:6px}
+body.showcase-research .evaluation-table{min-width:610px;color:#e8eff2}
+body.showcase-research .evaluation-table th,body.showcase-research .evaluation-table td{border-bottom:1px solid #ffffff24;padding:15px 12px}
+body.showcase-research .evaluation-table th{color:#b8c4cb;background:#20272b}
+body.showcase-research .evaluation-table tr.best td{background:#294038}
+body.showcase-research .evaluation-table tr.best td:first-child{color:#e5f9ed}
+body.showcase-research .eval-chart .label,body.showcase-research .eval-chart strong{color:#dce5e8}
+body.showcase-research .eval-chart .bar{background:#779fd0}
+body.showcase-research .disclosure-note{margin-top:24px;border:1px solid #ffffff22;background:#151b1f;border-radius:6px;padding:14px 18px}
+body.showcase-research .disclosure-note summary{cursor:pointer;font-weight:700;color:#dbe3e5}
+body.showcase-research .disclosure-note>.note{margin-top:13px}
+
+/* Algorithm explanations: one compact entry per method, detail reveals the full science. */
+body.showcase-research #guide>.pane{max-width:1100px;margin:auto}
+body.showcase-research #guide .guide-section{padding:19px 0;margin:0;border-bottom:1px solid #ffffff20;color:#c2cbcf;line-height:1.85}
+body.showcase-research #guide .guide-section h2{font-size:16px;color:#f1f1ef;margin-bottom:9px;letter-spacing:-.02em}
+body.showcase-research #guide .guide-section p{color:#bec8cd;font-size:13px}
+body.showcase-research #guide .guide-disclosure{border-bottom:1px solid #ffffff25;padding:17px 0}
+body.showcase-research #guide .guide-disclosure summary{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:20px;font-weight:700;font-size:17px;color:#f5f5f5;list-style:none}
+body.showcase-research #guide .guide-disclosure summary::-webkit-details-marker{display:none}
+body.showcase-research #guide .guide-disclosure summary:after{content:'+';font-size:23px;font-weight:300;color:#bcc4c8}
+body.showcase-research #guide .guide-disclosure[open] summary:after{content:'−'}
+body.showcase-research #guide .guide-disclosure p{margin:15px 0 0;color:#b3c0c6;line-height:1.85;font-size:13px}
+body.showcase-research .footer-source{color:#a5afb5;line-height:1.9}
+
+/* Site-specific accessibility, contrast, and compact-screen behavior. */
+body.showcase-research .modal{background:#171d21;color:#f0f4f5;border:1px solid #ffffff32}
+body.showcase-research .modal h2,body.showcase-research .modal .movie-title{color:#f4f5f5}
+body.showcase-research .modal-backdrop{background:#000b}
+body.showcase-research .modal .rating-option{background:#20282d;color:#fff;border-color:#ffffff30}
+body.showcase-research .modal .rating-option[aria-checked="true"]{background:#2d3f4b}
+body.showcase-research .metric-grid{gap:13px}
+body.showcase-research .lang-toggle,body.showcase-research .seg{background:#1d2429;border-color:#ffffff32}
+body.showcase-research .lang-btn{color:#c6d1d8}
+body.showcase-research .lang-btn.is-active{background:#e9eff2;color:#14191d}
+@media(max-width:1000px){body.showcase-research .compare-grid{grid-template-columns:repeat(5,245px)}body.showcase-research .content{padding:30px 22px 85px!important}body.showcase-research .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){body.showcase-research .content{padding:18px 14px 95px!important}body.showcase-research .pane{padding:18px 15px}body.showcase-research .pane h2,body.showcase-research #analyticsLab .eda-top h2{font-size:25px}body.showcase-research .pane-head{flex-wrap:wrap;align-items:flex-start}body.showcase-research .compare-grid{grid-template-columns:repeat(5,225px);gap:10px}body.showcase-research .compare-card{min-width:220px}body.showcase-research .eda-tabs{display:flex;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}body.showcase-research .eda-tabs button{flex:0 0 auto}body.showcase-research .eda-two,body.showcase-research .chart-grid{grid-template-columns:1fr}body.showcase-research .eda-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}body.showcase-research .viz-tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}body.showcase-research .viz-tabs button{white-space:nowrap}body.showcase-research .viz-plot{min-height:270px}body.showcase-research #evaluate .horizontal{align-items:stretch;justify-content:flex-start}body.showcase-research .evaluation-table{min-width:585px}body.showcase-research .compare-item{min-height:105px}body.showcase-research .guide-disclosure summary{font-size:15px}}
+@media(prefers-reduced-motion:reduce){body.showcase-research *,body.showcase-research *:before,body.showcase-research *:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Keep SVG axes legible: the original analytic plots use light-theme SVG presentation attributes. */
+body.showcase-research .eda-svgscroll svg text{fill:#d9e2e8!important}
+body.showcase-research .eda-svgscroll svg line[stroke="#edf1f8"],body.showcase-research .eda-svgscroll svg line[stroke="#edf0f7"],body.showcase-research .eda-svgscroll svg line[stroke="#f0f2f8"]{stroke:#374651}
+body.showcase-research .eda-svgscroll svg line[stroke="#aebbcf"],body.showcase-research .eda-svgscroll svg line[stroke="#b6bfce"]{stroke:#60717c}
+body.showcase-research .heatmap span{background:#26333c}
+body.showcase-research .heatmap span.low{background:#455e7d}
+body.showcase-research .heatmap span.mid{background:#668ebf}
+body.showcase-research .heatmap span.filled{background:#91b8eb}
+body.showcase-research .eda-matrix td[style*="background"]{color:#10212f!important}
+body.showcase-research .eda-barcol span{color:#d0dbe1}
+body.showcase-research .chart .bar-item .track{background:#303a43}
