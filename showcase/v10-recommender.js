@@ -1,12 +1,12 @@
 'use strict';
 /* V10 visitor inference from derived 25M model coefficients. No raw ratings, user IDs or network calls. */
 (function(root){
-  const pack=root.MovieRecV10Data,old=root.MovieRec25MData,valid=pack?.version==='v10-2026'&&pack?.model?.rows?.length>=8000;
+  const pack=root.MovieRecV10Data,old=root.MovieRec25MData,valid=pack?.version==='v10-2026'&&((pack?.model?.rows?.length||pack?.model?.ids?.length||0)>=8000);
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   let representation=null,baseline=null;
   function norm(arr){const x=arr.map(Number),n=Math.sqrt(x.reduce((s,a)=>s+a*a,0));return n>1e-8?x.map(v=>v/n):x.map(()=>0);}
   function dot(a,b){let n=0;for(let i=0;i<a.length;i++)n+=a[i]*b[i];return n;}
-  function load(){if(!valid)return false;if(representation)return true;representation=new Map(pack.model.rows.map(([id,v])=>[id,pack.model.type==='itemknn'?v:norm(v)]));if(old?.films){baseline=new Map(old.films.map(([id,cf,tag,pop])=>[id,{cf:norm(cf),tag:norm(tag),pop:clamp(pop/1000,0,1)}]));}return representation.size>=8000;}
+  function load(){if(!valid)return false;if(representation)return true;if(pack.model.type==='itemknn'&&pack.model.packed){if(typeof root.atob!=='function')return false;const ids=pack.model.ids,width=pack.model.width,binary=root.atob(pack.model.packed);if(binary.length!==ids.length*width*4)return false;representation=new Map();for(let i=0;i<ids.length;i++){const edges=[];for(let j=0;j<width;j++){const k=(i*width+j)*4,pos=binary.charCodeAt(k)|(binary.charCodeAt(k+1)<<8),weight=binary.charCodeAt(k+2)|(binary.charCodeAt(k+3)<<8);if(pos!==65535&&pos<ids.length)edges.push([ids[pos],weight]);}representation.set(ids[i],edges);}}else representation=new Map(pack.model.rows.map(([id,v])=>[id,pack.model.type==='itemknn'?v:norm(v)]));if(old?.films){baseline=new Map(old.films.map(([id,cf,tag,pop])=>[id,{cf:norm(cf),tag:norm(tag),pop:clamp(pop/1000,0,1)}]));}return representation.size>=8000;}
   function score(anchors,weights,features){
     const first=features.get(anchors[0]);
     if(!first)return null;
@@ -50,5 +50,5 @@
     const result=items.slice(0,limit);
     return result.length>=Math.min(limit,6)?result:null;
   }
-  root.MovieRecV10={ready:()=>load(),recommend,info:()=>({ready:valid,champion:pack?.champion||null,quality:pack?.quality||{},filmCount:pack?.model?.rows?.length||0})};
+  root.MovieRecV10={ready:()=>load(),recommend,info:()=>({ready:valid,champion:pack?.champion||null,quality:pack?.quality||{},filmCount:pack?.model?.rows?.length||pack?.model?.ids?.length||0})};
 })(window);
