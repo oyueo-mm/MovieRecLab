@@ -20,8 +20,8 @@
     cohorts=source.cohorts||[];
     return movieById.size>=3000&&center.length>=10;
   }
-  function recommend(mode,profile,catalog,limit=12){
-    if(!init()||!['user','similarity'].includes(mode)||source.quality?.[mode]===false||!Array.isArray(profile)||!Array.isArray(catalog))return null;
+  function recommend(mode,profile,catalog,limit=12,options={}){
+    if(!init()||!['user','similarity'].includes(mode)||source.quality?.[mode]===false&&!options.experimental||!Array.isArray(profile)||!Array.isArray(catalog))return null;
     const original=new Map(catalog.map(m=>[Number(m.id),m]));
     const rated=new Set(profile.map(x=>Number(x[0])));
     const matched=profile.map(([id,r])=>({item:movieById.get(Number(id)),r:Number(r)})).filter(x=>x.item&&Number.isFinite(x.r));
@@ -72,5 +72,5 @@
     const top=scored.slice(0,limit);
     return top.length>=Math.min(6,limit)?top:null;
   }
-  root.MovieRec25M={ready:()=>Boolean(init()),recommend,info:()=>good?{version:source.version,films:source.films.length,test:source.evaluation,counts:{ratings:source.ratingsTrained}}:null};
+  root.MovieRec25M={ready:()=>Boolean(init()),recommend,info:()=>good?{version:source.version,films:source.films.length,test:source.evaluation,counts:{ratings:source.ratingsTrained},quality:source.quality||{}}:null};
 })(window);
