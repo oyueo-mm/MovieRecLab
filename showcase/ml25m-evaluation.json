@@ -4,121 +4,121 @@
   "metrics": {
     "5": {
       "popular": {
-        "ndcg": 0.024782,
-        "recall": 0.036039,
-        "hit": 0.225
+        "ndcg": 0.045159,
+        "recall": 0.043469,
+        "hit": 0.224359
       },
       "genres": {
-        "ndcg": 0.036766,
-        "recall": 0.025794,
-        "hit": 0.125
+        "ndcg": 0.017728,
+        "recall": 0.009719,
+        "hit": 0.115385
       },
       "tag": {
-        "ndcg": 0.031197,
-        "recall": 0.038298,
-        "hit": 0.275
+        "ndcg": 0.031567,
+        "recall": 0.036329,
+        "hit": 0.192308
       },
       "user": {
-        "ndcg": 0.020308,
-        "recall": 0.015392,
-        "hit": 0.2
+        "ndcg": 0.040279,
+        "recall": 0.04724,
+        "hit": 0.205128
       }
     },
     "10": {
       "popular": {
-        "ndcg": 0.02505,
-        "recall": 0.036039,
-        "hit": 0.225
+        "ndcg": 0.04649,
+        "recall": 0.044622,
+        "hit": 0.237179
       },
       "genres": {
-        "ndcg": 0.035546,
-        "recall": 0.03032,
-        "hit": 0.15
+        "ndcg": 0.021912,
+        "recall": 0.015448,
+        "hit": 0.134615
       },
       "tag": {
-        "ndcg": 0.046281,
-        "recall": 0.046702,
-        "hit": 0.2
+        "ndcg": 0.050537,
+        "recall": 0.049249,
+        "hit": 0.282051
       },
       "user": {
-        "ndcg": 0.023872,
-        "recall": 0.026734,
-        "hit": 0.175
+        "ndcg": 0.053322,
+        "recall": 0.056719,
+        "hit": 0.262821
       }
     }
   },
   "validation": {
     "5": {
       "popular": {
-        "ndcg": 0.043566,
-        "recall": 0.021873,
-        "hit": 0.230769
+        "ndcg": 0.034287,
+        "recall": 0.034334,
+        "hit": 0.197452
       },
       "genres": {
-        "ndcg": 0.019619,
-        "recall": 0.015127,
-        "hit": 0.128205
+        "ndcg": 0.018601,
+        "recall": 0.013352,
+        "hit": 0.159236
       },
       "tag": {
-        "ndcg": 0.041568,
-        "recall": 0.030678,
-        "hit": 0.25641
+        "ndcg": 0.035659,
+        "recall": 0.035646,
+        "hit": 0.216561
       },
       "user": {
-        "ndcg": 0.040716,
-        "recall": 0.018878,
-        "hit": 0.205128
+        "ndcg": 0.041192,
+        "recall": 0.041631,
+        "hit": 0.248408
       }
     },
     "10": {
       "popular": {
-        "ndcg": 0.046019,
-        "recall": 0.023094,
-        "hit": 0.230769
+        "ndcg": 0.034757,
+        "recall": 0.034653,
+        "hit": 0.197452
       },
       "genres": {
-        "ndcg": 0.019676,
-        "recall": 0.013241,
-        "hit": 0.102564
+        "ndcg": 0.021427,
+        "recall": 0.020867,
+        "hit": 0.165605
       },
       "tag": {
-        "ndcg": 0.025607,
-        "recall": 0.017006,
-        "hit": 0.179487
+        "ndcg": 0.042638,
+        "recall": 0.043435,
+        "hit": 0.229299
       },
       "user": {
-        "ndcg": 0.041891,
-        "recall": 0.04738,
-        "hit": 0.282051
+        "ndcg": 0.039917,
+        "recall": 0.040375,
+        "hit": 0.254777
       }
     }
   },
   "quality": {
     "user": false,
-    "similarity": false
+    "similarity": true
   },
   "weights": {
     "user": [
-      0.15,
-      0.15,
-      0.7
+      0.075,
+      0.075,
+      0.85
     ],
     "similarity": [
-      0.35,
-      0.25,
-      0.4
+      0.2,
+      0.2,
+      0.6
     ],
-    "selectedUser": "user-pop70",
-    "selectedTag": "tag-pop40"
+    "selectedUser": "user-pop85",
+    "selectedTag": "tag-pop60"
   },
   "evaluationUsers": {
     "validation": {
-      "5": 39,
-      "10": 39
+      "5": 157,
+      "10": 157
     },
     "test": {
-      "5": 40,
-      "10": 40
+      "5": 156,
+      "10": 156
     }
   },
   "counts": {
@@ -126,7 +126,7 @@
     "users": 162542,
     "matchedMovies": 9448,
     "tagGenomeMovies": 8662,
-    "testUsers": 80,
+    "testUsers": 320,
     "cohorts": 36
   }
 }
