@@ -1,0 +1,339 @@
+{
+  "dataset": "MovieLens 25M",
+  "movieCount": 9448,
+  "ratings": 25000095,
+  "trainingInteractions": 12066929,
+  "holdoutUsers": 320,
+  "evaluation": "user exclusion before all model training; validation/test user split; most recent 20% relevance >=4, 5/10 earliest history ratings; same 9448-film candidate universe; NDCG/Recall/Hit@10, coverage",
+  "catalogScope": "matched MovieLens latest-small films only",
+  "models": [
+    "popular",
+    "v9-tag",
+    "svd",
+    "item-knn",
+    "user-knn",
+    "ease-top1200",
+    "als",
+    "bpr",
+    "item2vec",
+    "tag+als",
+    "tag+item-knn",
+    "tag+item2vec"
+  ],
+  "counts": {
+    "validation_5": 157,
+    "validation_10": 157,
+    "test_5": 156,
+    "test_10": 156
+  },
+  "validation": {
+    "5": {
+      "popular": {
+        "ndcg": 0.034287,
+        "recall": 0.034334,
+        "hit": 0.197452,
+        "coverage": 15
+      },
+      "v9-tag": {
+        "ndcg": 0.035659,
+        "recall": 0.035646,
+        "hit": 0.216561,
+        "coverage": 389
+      },
+      "svd": {
+        "ndcg": 0.035055,
+        "recall": 0.029967,
+        "hit": 0.165605,
+        "coverage": 894
+      },
+      "item-knn": {
+        "ndcg": 0.039341,
+        "recall": 0.037094,
+        "hit": 0.203822,
+        "coverage": 445
+      },
+      "user-knn": {
+        "ndcg": 0.030133,
+        "recall": 0.02769,
+        "hit": 0.140127,
+        "coverage": 236
+      },
+      "ease-top1200": {
+        "ndcg": 0.032116,
+        "recall": 0.02854,
+        "hit": 0.197452,
+        "coverage": 529
+      },
+      "als": {
+        "ndcg": 0.027821,
+        "recall": 0.021713,
+        "hit": 0.171975,
+        "coverage": 940
+      },
+      "bpr": {
+        "ndcg": 0.01966,
+        "recall": 0.014448,
+        "hit": 0.10828,
+        "coverage": 931
+      },
+      "item2vec": {
+        "ndcg": 0.020073,
+        "recall": 0.019054,
+        "hit": 0.127389,
+        "coverage": 970
+      },
+      "tag+als": {
+        "ndcg": 0.038716,
+        "recall": 0.032519,
+        "hit": 0.203822,
+        "coverage": 714
+      },
+      "tag+item-knn": {
+        "ndcg": 0.039614,
+        "recall": 0.039864,
+        "hit": 0.216561,
+        "coverage": 377
+      },
+      "tag+item2vec": {
+        "ndcg": 0.031567,
+        "recall": 0.031321,
+        "hit": 0.210191,
+        "coverage": 627
+      }
+    },
+    "10": {
+      "popular": {
+        "ndcg": 0.034757,
+        "recall": 0.034653,
+        "hit": 0.197452,
+        "coverage": 17
+      },
+      "v9-tag": {
+        "ndcg": 0.042638,
+        "recall": 0.043435,
+        "hit": 0.229299,
+        "coverage": 375
+      },
+      "svd": {
+        "ndcg": 0.036721,
+        "recall": 0.036079,
+        "hit": 0.210191,
+        "coverage": 898
+      },
+      "item-knn": {
+        "ndcg": 0.040735,
+        "recall": 0.051619,
+        "hit": 0.254777,
+        "coverage": 368
+      },
+      "user-knn": {
+        "ndcg": 0.042769,
+        "recall": 0.046657,
+        "hit": 0.242038,
+        "coverage": 262
+      },
+      "ease-top1200": {
+        "ndcg": 0.032824,
+        "recall": 0.0325,
+        "hit": 0.22293,
+        "coverage": 540
+      },
+      "als": {
+        "ndcg": 0.03508,
+        "recall": 0.031198,
+        "hit": 0.203822,
+        "coverage": 956
+      },
+      "bpr": {
+        "ndcg": 0.028299,
+        "recall": 0.027286,
+        "hit": 0.171975,
+        "coverage": 905
+      },
+      "item2vec": {
+        "ndcg": 0.023652,
+        "recall": 0.023526,
+        "hit": 0.152866,
+        "coverage": 960
+      },
+      "tag+als": {
+        "ndcg": 0.039206,
+        "recall": 0.038011,
+        "hit": 0.216561,
+        "coverage": 736
+      },
+      "tag+item-knn": {
+        "ndcg": 0.040916,
+        "recall": 0.043674,
+        "hit": 0.216561,
+        "coverage": 357
+      },
+      "tag+item2vec": {
+        "ndcg": 0.030762,
+        "recall": 0.034588,
+        "hit": 0.210191,
+        "coverage": 623
+      }
+    }
+  },
+  "test": {
+    "5": {
+      "popular": {
+        "ndcg": 0.045159,
+        "recall": 0.043469,
+        "hit": 0.224359,
+        "coverage": 15
+      },
+      "v9-tag": {
+        "ndcg": 0.031567,
+        "recall": 0.036329,
+        "hit": 0.192308,
+        "coverage": 371
+      },
+      "svd": {
+        "ndcg": 0.031429,
+        "recall": 0.031748,
+        "hit": 0.173077,
+        "coverage": 870
+      },
+      "item-knn": {
+        "ndcg": 0.029414,
+        "recall": 0.030458,
+        "hit": 0.179487,
+        "coverage": 464
+      },
+      "user-knn": {
+        "ndcg": 0.029622,
+        "recall": 0.036174,
+        "hit": 0.166667,
+        "coverage": 189
+      },
+      "ease-top1200": {
+        "ndcg": 0.035105,
+        "recall": 0.034572,
+        "hit": 0.211538,
+        "coverage": 510
+      },
+      "als": {
+        "ndcg": 0.022967,
+        "recall": 0.023087,
+        "hit": 0.160256,
+        "coverage": 907
+      },
+      "bpr": {
+        "ndcg": 0.020609,
+        "recall": 0.019964,
+        "hit": 0.115385,
+        "coverage": 935
+      },
+      "item2vec": {
+        "ndcg": 0.020241,
+        "recall": 0.022049,
+        "hit": 0.115385,
+        "coverage": 978
+      },
+      "tag+als": {
+        "ndcg": 0.032216,
+        "recall": 0.036429,
+        "hit": 0.198718,
+        "coverage": 674
+      },
+      "tag+item-knn": {
+        "ndcg": 0.032837,
+        "recall": 0.034245,
+        "hit": 0.179487,
+        "coverage": 373
+      },
+      "tag+item2vec": {
+        "ndcg": 0.022441,
+        "recall": 0.02719,
+        "hit": 0.153846,
+        "coverage": 627
+      }
+    },
+    "10": {
+      "popular": {
+        "ndcg": 0.04649,
+        "recall": 0.044622,
+        "hit": 0.237179,
+        "coverage": 19
+      },
+      "v9-tag": {
+        "ndcg": 0.050537,
+        "recall": 0.049249,
+        "hit": 0.282051,
+        "coverage": 372
+      },
+      "svd": {
+        "ndcg": 0.041857,
+        "recall": 0.043004,
+        "hit": 0.198718,
+        "coverage": 870
+      },
+      "item-knn": {
+        "ndcg": 0.040723,
+        "recall": 0.042478,
+        "hit": 0.25,
+        "coverage": 378
+      },
+      "user-knn": {
+        "ndcg": 0.04379,
+        "recall": 0.05432,
+        "hit": 0.237179,
+        "coverage": 240
+      },
+      "ease-top1200": {
+        "ndcg": 0.042481,
+        "recall": 0.042061,
+        "hit": 0.275641,
+        "coverage": 533
+      },
+      "als": {
+        "ndcg": 0.031323,
+        "recall": 0.031383,
+        "hit": 0.166667,
+        "coverage": 908
+      },
+      "bpr": {
+        "ndcg": 0.031019,
+        "recall": 0.031462,
+        "hit": 0.185897,
+        "coverage": 897
+      },
+      "item2vec": {
+        "ndcg": 0.024907,
+        "recall": 0.027881,
+        "hit": 0.147436,
+        "coverage": 938
+      },
+      "tag+als": {
+        "ndcg": 0.043066,
+        "recall": 0.037167,
+        "hit": 0.217949,
+        "coverage": 699
+      },
+      "tag+item-knn": {
+        "ndcg": 0.051123,
+        "recall": 0.053596,
+        "hit": 0.282051,
+        "coverage": 352
+      },
+      "tag+item2vec": {
+        "ndcg": 0.03518,
+        "recall": 0.039245,
+        "hit": 0.211538,
+        "coverage": 604
+      }
+    }
+  },
+  "selection": {
+    "similarity": "tag+item-knn",
+    "user": "user-knn",
+    "quality": {
+      "user": false,
+      "similarity": true
+    },
+    "method": "validation-only winner, independent test requires two-profile NDCG win",
+    "baseline": "v9-tag for similar films; popularity for user neighbourhood. User KNN still requires a separate V8 equal-test comparison."
+  }
+}
