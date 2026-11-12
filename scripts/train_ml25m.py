@@ -175,11 +175,11 @@ def ranker(ids,meta,item,tags,centers,cohorts,usage):
     membership={mid:i for i,mid in enumerate(ids)}
     all_items=np.arange(n)
     def core(profile,mode):
-        anchors=[(i,float(r)) for i,r in profile if float(r)!=3 and 0<=i<n]
+        anchors=[(i,float(r)) for i,r,*_ in profile if float(r)!=3 and 0<=i<n]
         if not anchors:return []
         anchor=np.array([i for i,r in anchors],dtype=np.int32)
         weights=np.array([max(-1,min(1,(r-3)/2)) for i,r in anchors],dtype=np.float32)
-        exclude=set(i for i,r in profile)
+        exclude=set(i for i,r,*_ in profile)
         collab=normalize((weights@item[anchor])[None,:])[0]
         semantic=normalize((weights@tags[anchor])[None,:])[0]
         cf=item@collab
