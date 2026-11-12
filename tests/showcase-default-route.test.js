@@ -1,0 +1,27 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
+const read=p=>fs.readFileSync(path.resolve(__dirname,'..',p),'utf8');
+const root=read('index.html'),showcase=read('showcase/index.html'),cinematic=read('cinematic/index.html'),js=read('showcase/showcase.js');
+const m=root.match(/<script id="showcaseDefaultRoute">([\s\S]*?)<\/script>/);assert.ok(m,'root landing route script must exist');
+new vm.Script(m[1],{filename:'default-route-inline.js'});
+function route(href,isTop=true){let redirect=null;const u=new URL(href),self={};const location={href:u.href,search:u.search,replace:x=>{redirect=x;}};const win={top:isTop?self:{},self,location};vm.runInNewContext(m[1],{window:win,URL,URLSearchParams});return redirect;}
+const base='https://oyueo-mm.github.io/MovieRecLab/';
+assert.equal(route(base),base+'showcase/','public homepage must open showcase');
+assert.equal(route(base+'index.html'),base+'showcase/','explicit index path must open showcase');
+assert.equal(route(base+'?legacy=1'),null,'original UI direct bypass must not redirect');
+assert.equal(route(base+'index.html?legacy=1'),null,'legacy bypass also works with explicit index.html');
+assert.equal(route(base+'index.html',false),null,'same-origin iframe must never redirect (prevents recursion)');
+assert.match(root,/id="onboardingGate"/,'original rating app remains physically in index.html');
+assert.match(root,/id="recommendWorkspace"/,'original recommendation code is unchanged');
+assert.match(root,/src="\.\/app\.js"/);
+assert.match(showcase,/src="\.\.\/index\.html"/,'showcase iframe keeps original app, which is not redirected when embedded');
+assert.match(cinematic,/src="\.\.\/index\.html"/,'prior cinematic iframe still works');
+assert.match(showcase,/href="\.\.\/\?legacy=1" class="legacy"/);
+assert.match(cinematic,/href="\.\.\/\?legacy=1" class="legacy-link"/);
+assert.match(js,/href="\.\.\/\?legacy=1"/,'failed showcase can open original UI');
+assert.match(js,/link\.href='\.\.\/\?legacy=1'/,'late-loading fallback opens original UI');
+assert.ok(!/new URL\("\.\/showcase\/",window\.location\.href\)/.test(showcase),'showcase does not run route redirect script');
+console.log('Default showcase, direct legacy fallback and same-origin iframe routing checks passed.');
