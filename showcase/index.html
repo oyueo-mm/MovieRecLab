@@ -8,7 +8,7 @@
 <title>영화 추천</title>
 <link rel="preconnect" href="https://image.tmdb.org">
 <link rel="preconnect" href="https://images.metahub.space">
-<link rel="stylesheet" href="./showcase.css?v=8">
+<link rel="stylesheet" href="./showcase.css?v=10">
 </head>
 <body>
 <main class="showcase" id="showcase" data-view="rating" aria-label="영화 쇼케이스">
@@ -50,7 +50,7 @@
     </nav>
     <div class="settings">
       <label for="modelSelect">추천 모델</label><select id="modelSelect" aria-label="추천 알고리즘"><option value="ease">EASE</option></select>
-      <label for="ml25mMode" title="25M 모델의 적용 범위를 선택합니다. 기존 추천을 선택하면 V8 보조 모델을 그대로 사용합니다.">추가 추천 모델</label><select id="ml25mMode" aria-label="25M 추천 모델 적용 방식" disabled><option value="auto">검증된 25M만 적용</option><option value="v8">기존 추천 (V8)</option><option value="experimental">25M 전체 실험</option></select>
+      <label for="ml25mMode" title="25M 모델의 적용 범위를 선택합니다. 기존 추천을 선택하면 V8 보조 모델을 그대로 사용합니다.">추가 추천 모델</label><select id="ml25mMode" aria-label="추천 모델 적용 방식" disabled><option value="auto">검증된 모델 자동 선택</option><option value="v9">25M Tag Genome (V9)</option><option value="v8">기존 추천 (V8)</option><option value="experimental">25M 전체 실험 (V9)</option><option value="v10">V10 우승 모델 비교</option></select>
       <label for="presetSelect">빠른 평가</label><select id="presetSelect" aria-label="미리 설정된 영화 평점"><option value="">프리셋 선택</option></select>
       <button type="button" id="resetRatings">평가 초기화</button>
       <button type="button" id="motionSetting" aria-pressed="false">애니메이션 줄이기 <span>끔</span></button>
@@ -74,6 +74,8 @@
 <script src="./research-studio.js"></script>
 <script src="./ml25m-model.js?v=9"></script>
 <script src="./ml25m-recommender.js?v=9"></script>
+<script src="./v10-model.js?v=10"></script>
+<script src="./v10-recommender.js?v=10"></script>
 <script src="./recommend-rails.js?v=8"></script>
-<script src="./showcase.js?v=8"></script>
+<script src="./showcase.js?v=10"></script>
 </body></html>
