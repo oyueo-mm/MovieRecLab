@@ -14,6 +14,79 @@ function fillWithPopularity(model,profile,out,limit){const seen=new Set(out.map(
 function legacyHybridResults(model,profile,limit=10,settings={}){if(!profile.size)return popResults(model,profile,limit);const c=contentResults(model,profile,70),u=userResults(model,profile,70,settings),i=itemResults(model,profile,70);const reliable=clip(profile.size/8,.15,1),weights={content:1.1-reliable*.45,user:reliable*.80,item:reliable*.40};const scores=new Map();for(const [type,list] of [['content',c],['user',u],['item',i]]){list.forEach((r,rank)=>{const id=r.movie.id;let x=scores.get(id);if(!x){x={movie:r.movie,score:0,parts:[],reasons:[],factors:[],methods:[]};scores.set(id,x);}const val=weights[type]/(8+rank);x.score+=val;x.parts.push({type,val});x.reasons.push(r.why);x.methods.push(type);});}const out=[...scores.values()].map(x=>{const sorted=x.parts.sort((a,b)=>b.val-a.val);const lead=sorted[0]?.type||'content';const labels={content:'장르·태그',user:'유사 사용자',item:'유사 영화'};return{movie:x.movie,score:x.score+.001*x.movie.pop,why:`${labels[lead]} 추천 중심 · ${new Set(x.methods).size}개 방식 결합`,factors:[['콘텐츠 기여',clip((x.parts.find(y=>y.type==='content')?.val||0)*8,0,1)],['사용자 기반 기여',clip((x.parts.find(y=>y.type==='user')?.val||0)*8,0,1)],['아이템 기반 기여',clip((x.parts.find(y=>y.type==='item')?.val||0)*8,0,1)]],method:'hybrid'};}).sort((a,b)=>b.score-a.score||b.movie.n-a.movie.n);return fillWithPopularity(model,profile,out,limit);}
 function coRatingResults(model,profile,limit=70){const raw=new Map();for(const [fid,r] of profile){if(r<3.5)continue;for(const [uid,rr] of model.items.get(fid)||[]){if(rr<3)continue;const history=model.users.get(uid)||[],weight=(r-2.5)/2.5/Math.log2(3+history.length);for(const [id,other] of history){if(profile.has(id)||other<3.5)continue;raw.set(id,(raw.get(id)||0)+weight);}}}return [...raw].map(([id,value])=>({movie:model.movieById.get(id),score:value/Math.pow(Math.max(2,model.movieById.get(id)?.n||0),.58)})).filter(x=>x.movie?.n>=2).sort((a,b)=>b.score-a.score||b.movie.pop-a.movie.pop).slice(0,limit).map(x=>({...x,why:'좋아한 영화와 함께 높게 평가된 영화',method:'corating',factors:[['공동 선호 신호',clip(x.score,0,1)]]}));}
 function hybridResults(model,profile,limit=10,settings={}){if(!profile.size)return popResults(model,profile,limit);const groups=[['corating',coRatingResults(model,profile,70),.65],['popular',popResults(model,profile,70),.65],['user',userResults(model,profile,70,settings),.35]],scores=new Map();for(const [type,items,weight] of groups){items.forEach((rec,rank)=>{let item=scores.get(rec.movie.id);if(!item){item={movie:rec.movie,score:0,parts:[]};scores.set(rec.movie.id,item);}const value=weight/(8+rank);item.score+=value;item.parts.push({type,value,reason:rec.why});});}const labels={corating:'영화 공동 선호',popular:'인기·평점',user:'유사 사용자'};const output=[...scores.values()].sort((a,b)=>b.score-a.score).slice(0,limit).map(x=>{const lead=x.parts.slice().sort((a,b)=>b.value-a.value)[0],partValue=type=>x.parts.filter(y=>y.type===type).reduce((s,y)=>s+y.value,0);return{movie:x.movie,score:x.score,why:labels[lead.type]+' 중심 · 실제 평점 패턴을 결합한 추천',factors:[['함께 좋아한 영화',partValue('corating')/x.score],['평점·인기 기여',partValue('popular')/x.score],['유사 사용자 기여',partValue('user')/x.score]],method:'hybrid'};});return fillWithPopularity(model,profile,output,limit);}
-function recommend(model,profileEntries,mode='hybrid',limit=10,settings={}){const profile=normalizeProfile(profileEntries,model);switch(mode){case'popular':return popResults(model,profile,limit);case'content':return contentResults(model,profile,limit);case'user':return userResults(model,profile,limit,settings);case'item':return itemResults(model,profile,limit);case'hybrid':return hybridResults(model,profile,limit,settings);case'hybrid-previous':return legacyHybridResults(model,profile,limit,settings);default:throw Error('알 수 없는 알고리즘: '+mode);}}
+
+/* Evidence-weighted alternatives. Original scorers remain available for a controlled, reproducible A/B evaluation. */
+function contentResultsV2(model,profile,limit=10,settings={}){
+ const rated=[...profile].map(([id,r])=>[model.movieById.get(id),r]).filter(([m])=>m?.genres?.length);
+ if(!rated.length)return popResults(model,profile,limit);
+ const a=settings.contentAverageWeight??.54,b=settings.contentBestWeight??.31,c=settings.contentDislikeWeight??.15,p=settings.contentPriorWeight??.29,output=[];
+ for(const movie of model.movies){
+  if(profile.has(movie.id)||movie.n<2||!movie.genres.length)continue;
+  let weighted=0,total=0,top=0,negative=0,best=null;
+  for(const [anchor,rating] of rated){
+   const sim=genreSimilarity(model,anchor,movie);
+   if(sim<=0)continue;
+   const signal=clip((rating-3)/2,-1,1);
+   weighted+=sim*signal;total+=sim;
+   if(signal>0&&sim*signal>top){top=sim*signal;best=anchor;}
+   if(signal<0)negative=Math.max(negative,sim*-signal);
+  }
+  if(!total)continue;
+  const preference=weighted/total,prior=(movie.pop-model.mean)/2;
+  const score=a*preference+b*top-c*negative+p*prior;
+  output.push({movie,score,why:best?best.title+'와 콘텐츠 특성 유사':'입력한 평점의 장르·태그 선호와 비선호를 반영',factors:[['선호 장르 적합성',clip((preference+1)/2,0,1)],['가장 유사한 선호 영화',clip(top,0,1)],['평점 신뢰도',movie.n/(movie.n+20)]],method:'content'});
+ }
+ return output.sort((x,y)=>y.score-x.score||y.movie.n-x.movie.n).slice(0,limit);
+}
+function userResultsV2(model,profile,limit=10,settings={}){
+ if(!profile.size)return popResults(model,profile,limit);
+ const candidates=[],reg=settings.userOverlapShrink??3,prior=settings.userShrink??.65,priorWeight=settings.userPopularityWeight??.50,support=settings.userSupportWeight??.035;
+ for(const [uid,items] of model.users){
+  if(uid===settings.excludeUser)continue;
+  const neighbourMean=model.userMeans.get(uid),lookup=new Map(items.map(([id,r])=>[id,r]));
+  let dot=0,a2=0,b2=0,common=0;
+  for(const [id,r] of profile){
+   const nr=lookup.get(id);if(nr===undefined)continue;
+   const x=r-3,y=nr-neighbourMean;dot+=x*y;a2+=x*x;b2+=y*y;common++;
+  }
+  if(!common||a2<1e-8||b2<1e-8)continue;
+  const sim=Math.max(0,dot/Math.sqrt(a2*b2))*common/(common+reg);
+  if(sim>1e-5)candidates.push({uid,sim,items,mean:neighbourMean,common});
+ }
+ candidates.sort((a,b)=>b.sim-a.sim);
+ const selected=candidates.slice(0,Math.max(5,settings.neighbours||85)),totals=new Map();
+ for(const neighbour of selected)for(const [id,r] of neighbour.items){
+  if(profile.has(id))continue;
+  let item=totals.get(id);
+  if(!item){item={sum:0,weight:0,votes:0,strongest:0};totals.set(id,item);}
+  item.sum+=neighbour.sim*(r-neighbour.mean);item.weight+=neighbour.sim;item.votes++;item.strongest=Math.max(item.strongest,neighbour.sim);
+ }
+ const output=[];
+ for(const [id,x] of totals){
+  const movie=model.movieById.get(id);if(!movie||movie.n<2)continue;
+  const neighbourSignal=x.sum/(x.weight+prior),popularity=movie.pop-model.mean;
+  const score=(1-priorWeight)*neighbourSignal+priorWeight*popularity+support*Math.log1p(x.votes);
+  output.push({movie,score,why:'취향이 비슷한 '+x.votes+'명의 평점 활용',factors:[['유사 사용자 수',clip(x.votes/20,0,1)],['최대 사용자 유사도',clip(x.strongest,0,1)],['평점 신뢰도',movie.n/(movie.n+20)]],method:'user'});
+ }
+ output.sort((x,y)=>y.score-x.score||y.movie.n-x.movie.n);
+ return fillWithPopularity(model,profile,output,limit);
+}
+
+/* Content and item-item collaborative similarity describe different aspects of "movies like what you liked". */
+function similarityResults(model,profile,limit=10,settings={}){
+ if(!profile.size)return popResults(model,profile,limit);
+ const count=Math.max(limit,Math.min(80,settings.similarityCandidates||60)),k=settings.similarityK??10,contentWeight=settings.similarityContentWeight??1,itemWeight=settings.similarityItemWeight??1;
+ const content=contentResults(model,profile,count).filter(x=>x.method==='content'),item=itemResults(model,profile,count).filter(x=>x.method==='item'),scores=new Map();
+ for(const [type,list,weight] of [['content',content,contentWeight],['item',item,itemWeight]])list.forEach((rec,rank)=>{const id=rec.movie.id;let data=scores.get(id);if(!data){data={movie:rec.movie,score:0,types:new Set(),content:0,item:0};scores.set(id,data);}const value=weight/(k+rank+1);data.score+=value;data[type]+=value;data.types.add(type);});
+ return [...scores.values()].sort((a,b)=>b.score-a.score||b.movie.n-a.movie.n).slice(0,limit).map(x=>({movie:x.movie,score:x.score,method:'similarity',why:x.types.size>1?'장르·태그와 공동 평가 패턴 모두에서 유사':x.types.has('item')?'다른 사용자가 함께 비슷하게 평가한 영화':'평가한 영화의 장르·태그와 유사',factors:[['콘텐츠 유사도 기여',x.content/(x.score||1)],['공동 평가 유사도 기여',x.item/(x.score||1)]]}));
+}
+
+function userBlendResults(model,profile,limit=10,settings={}){
+ const max=Math.max(limit,55),legacy=userResults(model,profile,max,settings).filter(x=>x.method==='user'),modern=userResultsV2(model,profile,max,settings).filter(x=>x.method==='user'),legacyWeight=clip(settings.userBlendLegacyWeight??.25,0,1),k=settings.userBlendK??10,all=new Map();
+ for(const [items,weight] of [[legacy,legacyWeight],[modern,1-legacyWeight]])items.forEach((r,i)=>{const id=r.movie.id;let t=all.get(id);if(!t){t={rec:r,score:0,parts:0};all.set(id,t);}const value=weight/(k+i+1);t.score+=value;if(value>t.parts){t.parts=value;t.rec=r;}});
+ const out=[...all.values()].sort((a,b)=>b.score-a.score||b.rec.movie.n-a.rec.movie.n).slice(0,limit).map(x=>({...x.rec,score:x.score,method:'user'}));
+ return fillWithPopularity(model,profile,out,limit);
+}
+function recommend(model,profileEntries,mode='hybrid',limit=10,settings={}){const profile=normalizeProfile(profileEntries,model);switch(mode){case'popular':return popResults(model,profile,limit);case'content':return settings.useContentV2?contentResultsV2(model,profile,limit,settings):contentResults(model,profile,limit);case'similarity':return similarityResults(model,profile,limit,settings);case'user':return settings.useLegacy?userResults(model,profile,limit,settings):settings.useTunedUserOnly?userResultsV2(model,profile,limit,settings):userBlendResults(model,profile,limit,settings);case'item':return itemResults(model,profile,limit);case'hybrid':return hybridResults(model,profile,limit,settings);case'hybrid-previous':return legacyHybridResults(model,profile,limit,settings);default:throw Error('알 수 없는 알고리즘: '+mode);}}
 root.MovieRecEngine={csv,parseFiles,createModel,normalizeProfile,recommend,genreSimilarity};if(typeof module!=='undefined'&&module.exports)module.exports=root.MovieRecEngine;
 })(typeof self!=='undefined'?self:globalThis);
