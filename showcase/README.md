@@ -32,10 +32,10 @@ There is no server rewrite; it is an immediate `location.replace()` in the head 
 - Baseline commit: 96d61e33865f283cdad072302461a26b5c1b1506.
 - Recovery branch: backup/pre-showcase-v2-2026-11-12.
 - Experiment branch: feat/showcase-ui-v2.
-- Unchanged legacy route: /MovieRecLab/.
+- Legacy direct-access route after official launch: /MovieRecLab/?legacy=1 (the original root HTML and JS are preserved).
 - Unchanged previous experiment: /MovieRecLab/cinematic/.
 - New route: /MovieRecLab/showcase/.
-- Immediate user fallback: open the original route; original users are not redirected.
+- Immediate user fallback: open /MovieRecLab/?legacy=1. Regular root visitors go to /showcase/; iframe-based legacy rendering does not redirect.
 - Deployment rollback: revert the dedicated showcase merge in a new GitHub commit/PR and verify GitHub Pages published the earlier tree. No force push or reset.
 - Source bridge is injected only in the showcase iframe and never changes the source app's public API.
 
