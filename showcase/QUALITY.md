@@ -1,5 +1,26 @@
 # V6 — Poster recovery and evidence-tested recommendation updates
 
+## V8 — Detail posters visible while ranked-row posters remain blank (2026-11-12)
+
+**Symptom:** A film's poster loads when its detail panel is opened, but its thumbnail remains an empty title card in the same movie recommendation row.
+
+**Confirmed root causes and contributing data quality:**
+
+1. Ranked-row images had native `loading="lazy"` while `img.hidden=true` was set initially and again on every 404. A CSS `display:none` lazy image may never initiate the next source request. The detail-panel image is not native-lazy, so it could load the same movie's fallback poster successfully.
+2. Ranked poster initialization waited for an `IntersectionObserver` callback in a nested vertical/horizontal scrolling UI; some visible cards could remain unbound.
+3. After failed URLs, the metadata fallback appended additional candidates but filtered the list *after* maintaining its old index, skipping newly added fallbacks.
+4. A separate live-CDN probe sampled 31 `image.tmdb.org/t/p/w342` links from the 9,522-row static poster registry; **27 were HTTP 404**, 4 returned image responses. Thus metadata-path coverage is not proof of working posters; the registry remains as a **fallback** rather than being preferred before the working IMDb-linked Metahub source.
+
+**Fix (presentation only):** The poster image stays in layout with a transparent `poster-pending` class while retrying URLs; the original text fallback is overlaid until `load` succeeds. All ranked poster elements bind their artwork listeners immediately; browser-native lazy loading still governs off-screen transfers. Failed URLs are memoized during a session, successful movie-specific URLs are broadcast to *all* still-mounted images of that movie (including ranked rows when detail opens), and metadata candidate iteration no longer loses appended URLs.
+
+**Scope:** Changes affect only poster loading in rating/search/detail/recommendations/research. All three recommendation rows, their algorithms, order, movie ratings, EASE and benchmark results remain unchanged. No movie poster binaries are stored in Git.
+
+**Validation:** `tests/poster-lazy-render.test.js` reproduces a non-firing observer and a lazy image with 404; `tests/poster-recovery.test.js` asserts metadata fallback and propagation from detail to rail; `tests/poster-map.test.js` asserts the source priority and map preservation. Dedicated headless Chromium smoke test checks real native lazy-image behavior with deterministic HTTP 404 and successful fallback.
+
+**Rollback:** Previous official commit `49a98f7e0b45f56d3b82175fe6a1f664fb07f894` is preserved at `backup/pre-poster-troubleshoot-v8-2026-11-12`. Revert the dedicated V8 PR to restore the exact old behavior without touching recommendations or force-pushing.
+
+---
+
 ## V7 — Verified poster registry (2026-11-12)
 
 **Problem:** V6 tried several Metahub variants and Cinemeta lookups, but these often resolved to the same failing image. User screenshots showed multiple title-only tiles in the multi-row recommendations.

@@ -223,3 +223,9 @@ body.showcase-research #guide .research-algorithm-card p{font-size:12px;line-hei
 body.showcase-research #guide .footer-source{border-top:1px solid #ffffff25;padding-top:20px;margin-top:16px;color:#949ea6}
 @media(max-width:1000px){body.showcase-research #guide .research-algorithm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){body.showcase-research .research-compare-rows{gap:16px}body.showcase-research .research-compare-rail{gap:11px}body.showcase-research .research-compare-film{flex-basis:132px;width:132px}body.showcase-research #visualize .viz-pane{padding:11px 0!important}body.showcase-research #visualize .viz-tabs{flex-wrap:nowrap;overflow-x:auto}body.showcase-research #visualize .viz-plot{width:100%;border-radius:3px}body.showcase-research #visualize #vizPlot svg{max-height:450px}body.showcase-research #guide .research-algorithm-grid{grid-template-columns:1fr;gap:9px}body.showcase-research #guide .research-algorithm-card{min-height:0;padding:16px 17px}body.showcase-research #guide .research-algorithm-group>h2{margin:8px 0 14px}}
+
+/* Keep lazy poster images in layout during image retries; layer fallback over transparent img. */
+body.showcase-research img.poster-pending{opacity:0!important}
+body.showcase-research .research-compare-poster>img,body.showcase-research .research-compare-poster>.research-compare-fallback{grid-area:1/1}
+body.showcase-research .research-compare-poster>img{align-self:stretch;justify-self:stretch;min-width:0;min-height:0}
+body.showcase-research .research-compare-fallback{z-index:1}

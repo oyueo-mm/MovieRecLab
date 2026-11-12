@@ -1,0 +1,32 @@
+name: Browser poster fallback verification
+on:
+  push:
+    branches: [fix/poster-loading-v8]
+    paths:
+      - 'showcase/art.js'
+      - 'showcase/recommend-rails.js'
+      - 'tests/poster-browser-smoke.cjs'
+      - '.github/workflows/poster-browser-smoke.yml'
+  pull_request:
+    paths:
+      - 'showcase/art.js'
+      - 'showcase/recommend-rails.js'
+      - 'tests/poster-browser-smoke.cjs'
+      - '.github/workflows/poster-browser-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  browser-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium browser automation
+        run: |
+          npm install --no-save --no-package-lock playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Reproduce 404 poster fallback inside Chromium
+        run: node tests/poster-browser-smoke.cjs

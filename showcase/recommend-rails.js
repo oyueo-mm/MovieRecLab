@@ -6,7 +6,7 @@
     function buildFilm(doc,rec,row,rank,token){
       const m=rec.movie,button=doc.createElement('button'),art=doc.createElement('span'),img=doc.createElement('img'),fallback=doc.createElement('span'),caption=doc.createElement('span');
       button.type='button';button.className='recommend-card';button.dataset.movieId=String(m.id);button.dataset.rank=String(rank+1);button.setAttribute('aria-label',(rank+1)+'위 '+m.title+' 상세정보 보기');button.title=m.title;
-      art.className='recommend-card-art';img.alt='';img.loading=rank<6?'eager':'lazy';img.decoding='async';img.hidden=true;fallback.className='recommend-card-fallback';fallback.textContent=m.title;caption.className='recommend-card-title';caption.textContent=m.title;art.append(img,fallback);button.append(art,caption);
+      art.className='recommend-card-art';img.alt='';img.loading=rank<6?'eager':'lazy';img.decoding='async';img.className='poster-pending';fallback.className='recommend-card-fallback';fallback.textContent=m.title;caption.className='recommend-card-title';caption.textContent=m.title;art.append(img,fallback);button.append(art,caption);
       button.addEventListener('click',()=>{if(token===generation)onMovie(rec,row);});
       function load(){if(token!==generation||!button.isConnected||button._posterLoaded)return;button._posterLoaded=true;if(typeof Art.bindPoster==='function')button._releaseArtwork=Art.bindPoster(img,m,fallback);else{const immediate=Art.preview(m);img.onerror=()=>{img.hidden=true;fallback.hidden=false;};img.onload=()=>{img.hidden=false;fallback.hidden=true;};if(immediate.poster)img.src=immediate.poster;Art.get(m).then(a=>{if(token!==generation||!button.isConnected)return;if(!img.src&&a?.poster)img.src=a.poster;}).catch(()=>{});}}
       button._loadArtwork=load;
@@ -28,7 +28,9 @@
         container.append(section);
         if(previous.has(row.key)&&list.length)track.scrollLeft=previous.get(row.key);
       }
-      if('IntersectionObserver' in root){observer=new root.IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;entry.target._loadArtwork?.();observer.unobserve(entry.target);}},{rootMargin:'150px 400px'});items.forEach(button=>observer.observe(button));}else items.forEach(card=>card._loadArtwork?.());
+      // Bind every card immediately; native loading=lazy postpones off-screen image bytes without suppressing error fallbacks.
+      // The former IntersectionObserver could leave visible cards forever unbound in a nested scroll area.
+      items.forEach(card=>card._loadArtwork?.());
     }
     return {render,destroy(){generation++;cleanup();container.replaceChildren();}};
   }
