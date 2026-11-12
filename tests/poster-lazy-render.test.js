@@ -1,0 +1,21 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{JSDOM}=require('jsdom'),vm=require('node:vm');
+const read=file=>fs.readFileSync(path.join(__dirname,'..',file),'utf8'),artCode=read('showcase/art.js'),railsCode=read('showcase/recommend-rails.js'),css=read('showcase/showcase.css');
+new vm.Script(artCode);new vm.Script(railsCode);assert.match(css,/\.showcase img\.poster-pending\{opacity:0!important\}/);assert.match(css,/\.recommend-card-art>img,\.showcase \.recommend-card-art>\.recommend-card-fallback\{grid-area:1\/1\}/);
+const dom=new JSDOM('<!doctype html><html><body><div id="host"></div></body></html>',{url:'https://example.test/MovieRecLab/showcase/',runScripts:'outside-only',pretendToBeVisual:true}),win=dom.window,doc=win.document;
+let observes=0;win.IntersectionObserver=class{observe(){observes++;}disconnect(){}};win.fetch=async()=>{throw Error('offline metadata');};
+win.eval(artCode);win.eval(railsCode);
+const movies=Array.from({length:9},(_,index)=>({id:index+200,title:'영화 '+index,imdb:'01234'+String(100+index),tmdb:'123456'}));
+const rows=[{key:'primary',label:'당신을 위한 추천',recs:movies.map(movie=>({movie,why:'개인화 추천'}))}];
+const rails=win.MovieRecRails.mount(doc.getElementById('host'),win.MovieShowcaseArt,()=>{});
+rails.render(rows);
+const cards=[...doc.querySelectorAll('.recommend-card')];
+assert.equal(cards.length,9);assert.equal(observes,0,'poster loading must not depend on IntersectionObserver in nested scroll content');
+for(const card of cards){const img=card.querySelector('img');assert.ok(img.src.startsWith('https://'),'every ranked movie should start a matched image URL');assert.equal(img.hidden,false,'all lazy images must remain in layout');assert.ok(img.classList.contains('poster-pending'),'an unloaded image is transparent, never display:none');}
+const seventh=cards[6].querySelector('img');assert.equal(seventh.loading,'lazy');const oldUrl=seventh.src;seventh.onerror();assert.equal(seventh.hidden,false,'404 must not hide a lazy image, because the next request would be suppressed');assert.notEqual(seventh.src,oldUrl,'fallback must advance immediately');assert.equal(cards[6].querySelector('.recommend-card-fallback').hidden,false);
+const featured=doc.createElement('img'),movie=movies[6];featured.loading='eager';doc.body.append(featured);
+const done=win.MovieShowcaseArt.bindPoster(featured,movie,null);const winner=featured.src;featured.onload();
+assert.equal(cards[6].querySelector('img').src,winner,'successful detail artwork must propagate to matching recommendation row');
+cards[6].querySelector('img').onload();assert.equal(cards[6].querySelector('.recommend-card-fallback').hidden,true);
+done();rails.destroy();assert.equal(win.MovieShowcaseArt.posterStatus().subscribedFilms,0,'all detached poster observers must be cleaned');win.close();
+console.log('Poster rail lazy-image retries, eager binding despite non-firing IntersectionObserver, detail-to-rail image sharing and resource cleanup passed.');
