@@ -40,6 +40,7 @@
     <div class="poster-controls"><button id="prev" class="arrow-btn" type="button" aria-label="이전 영화"><span>←</span></button><button id="next" class="arrow-btn" type="button" aria-label="다음 영화"><span>→</span></button></div>
     <div id="posterRail" class="poster-rail" role="list" tabindex="0" aria-label="영화 선택"></div>
   </section>
+  <section id="recommendRows" class="recommend-rows" aria-label="추천 방식별 영화 모음" hidden><div class="recommend-rows-inner" id="recommendRowsInner"></div></section>
   <div class="bottom-bar"><button id="switchView" type="button" class="bottom-switch" hidden></button></div>
   <div class="panel-backdrop" id="panelBackdrop" hidden></div>
   <aside id="menuPanel" class="side-panel" aria-hidden="true" aria-label="메뉴">
@@ -61,7 +62,7 @@
     <div class="search-head"><input id="searchInput" type="search" placeholder="영화 검색" aria-label="영화 제목 검색" autocomplete="off"><button id="searchClose" class="panel-close" type="button" aria-label="검색 닫기">×</button></div>
     <div id="searchResults" class="search-results" role="listbox" aria-label="영화 검색 결과"></div>
   </aside>
-  <aside class="detail-panel" id="detailPanel" aria-hidden="true" aria-label="영화 상세 정보"><button id="detailClose" class="panel-close" type="button" aria-label="영화 상세 닫기">×</button><h2 id="detailTitle"></h2><div id="detailBody"></div></aside>
+  <aside class="detail-panel" id="detailPanel" aria-hidden="true" aria-label="영화 상세 정보"><button id="detailClose" class="panel-close" type="button" aria-label="영화 상세 닫기">×</button><h2 id="detailTitle"></h2><div id="detailBody"></div><button id="featureFilm" class="detail-feature" type="button" hidden>크게 보기 <span aria-hidden="true">↗</span></button></aside>
   <section class="research-screen" id="researchScreen" aria-label="추천 실험실" hidden><div class="research-bar"><button id="researchClose" type="button" aria-label="쇼케이스로 복귀">←</button><span id="researchTitle">분석</span><button id="researchMenu" type="button" aria-label="분석 메뉴">☰</button></div><nav id="researchTabs" class="research-tabs" aria-label="분석 화면 탐색"><button type="button" data-research-tab="compare" aria-current="false">알고리즘 비교</button><button type="button" data-research-tab="analysis" aria-current="false">데이터 분석</button><button type="button" data-research-tab="visualize" aria-current="false">추천 시각화</button><button type="button" data-research-tab="evaluate" aria-current="false">성능 평가</button><button type="button" data-research-tab="guide" aria-current="false">알고리즘 설명</button></nav></section>
   <div class="loading" id="loading" role="status" aria-live="polite"><div class="load-line"></div><span id="loadingText">영화 데이터를 불러오는 중...</span></div>
   <div class="toast" id="toast" aria-live="polite" role="status" hidden></div>
@@ -69,5 +70,6 @@
 </main>
 <script src="./art.js"></script>
 <script src="./research-studio.js"></script>
+<script src="./recommend-rails.js"></script>
 <script src="./showcase.js"></script>
 </body></html>
