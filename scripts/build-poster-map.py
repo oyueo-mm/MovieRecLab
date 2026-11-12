@@ -57,7 +57,7 @@ def main():
     output = {str(k): mapped[k] for k in sorted(mapped)}
     target = pathlib.Path("showcase/poster-map.js")
     target.parent.mkdir(exist_ok=True)
-    target.write_text("/* Generated from MovieLens IDs and TMDb poster metadata; paths only, no poster assets. */\\nwindow.MovieRecPosterPaths="+json.dumps(output, ensure_ascii=False, separators=(",",":"))+";\\n", encoding="utf-8")
+    target.write_text("/* Generated from MovieLens IDs and TMDb poster metadata; paths only, no poster assets. */\nwindow.MovieRecPosterPaths="+json.dumps(output, ensure_ascii=False, separators=(",",":"))+";\n", encoding="utf-8")
     print("Matched poster paths:", len(mapped), "candidate rows:", candidates, "conflicting paths:", duplicates, "bytes:", target.stat().st_size)
 
 if __name__ == "__main__":
