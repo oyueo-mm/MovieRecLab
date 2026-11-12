@@ -1,0 +1,50 @@
+name: V10 MovieLens 25M recommendation model tournament
+on:
+  push:
+    branches:
+      - feat/v10-model-tournament
+    paths:
+      - 'scripts/benchmark_v10.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/v10-model-tournament
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check tournament Python syntax
+        run: python -m py_compile scripts/benchmark_v10.py scripts/train_ml25m.py
+      - name: Install tested offline recommender dependencies
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 scikit-learn==1.6.1 implicit==0.7.2 gensim==4.3.3
+      - name: Compare all models on frozen user-level validation and test users
+        env:
+          OPENBLAS_NUM_THREADS: '2'
+          OMP_NUM_THREADS: '2'
+          MKL_NUM_THREADS: '2'
+        run: python -u scripts/benchmark_v10.py
+      - name: Compact verified item-item coefficients without changing recommendations
+        run: python scripts/pack_v10_model.py
+      - name: Validate derived model and statistical report
+        run: |
+          node --check showcase/v10-model.js
+          python -c "import json; d=json.load(open('showcase/v10-benchmark.json')); assert d['ratings']>24000000; assert d['movieCount']>8000; assert all(d['counts'][x]>100 for x in ['validation_5','validation_10','test_5','test_10']); assert all(x in d['models'] for x in ['item-knn','user-knn','ease-top1200','als','bpr','item2vec','v9-tag']); print(d['selection'])"
+      - name: Commit derived, privacy-preserving model only
+        run: |
+          git add showcase/v10-model.js showcase/v10-benchmark.json
+          if git diff --cached --quiet; then echo 'No generated model change'; exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "build(v10): publish MovieLens 25M algorithm evaluation and accepted derived model [skip ci]"
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin feat/v10-model-tournament
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" rebase origin/feat/v10-model-tournament
+            if git push origin HEAD:feat/v10-model-tournament; then exit 0; fi
+            sleep 2
+          done
+          echo 'Cannot publish without force push; safe failure' >&2
+          exit 1

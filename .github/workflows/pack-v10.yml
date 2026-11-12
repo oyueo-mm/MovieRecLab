@@ -1,0 +1,39 @@
+name: V10 lossless browser model packing
+on:
+  push:
+    branches:
+      - feat/v10-model-tournament
+    paths:
+      - 'scripts/pack_v10_model.py'
+      - '.github/workflows/pack-v10.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/v10-model-tournament
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check V10 uncompressed artifact is present and pack its derived edges
+        run: |
+          python -m py_compile scripts/pack_v10_model.py
+          python scripts/pack_v10_model.py
+          node --check showcase/v10-model.js
+      - name: Commit packed coefficients without altering existing model scores
+        run: |
+          git add showcase/v10-model.js
+          if git diff --cached --quiet; then echo 'V10 graph already packed'; exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "build(v10): losslessly pack aggregate movie similarities [skip ci]"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin feat/v10-model-tournament
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" rebase origin/feat/v10-model-tournament
+            if git push origin HEAD:feat/v10-model-tournament; then exit 0; fi
+            sleep 2
+          done
+          exit 1
