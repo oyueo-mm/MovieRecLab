@@ -5,6 +5,7 @@ on:
       - feat/showcase-ui-v2
       - feat/showcase-default-home
       - feat/showcase-netflix-ui
+      - feat/showcase-research-redesign
   pull_request:
     paths:
       - 'showcase/**'
@@ -12,6 +13,7 @@ on:
       - 'cinematic/index.html'
       - 'tests/showcase-default-route.test.js'
       - 'tests/showcase.test.js'
+      - 'tests/showcase-research.test.js'
       - '.github/workflows/showcase.yml'
   workflow_dispatch:
 jobs:
@@ -29,11 +31,13 @@ jobs:
           node --check showcase/bridge.js
           node --check showcase/art.js
           node --check showcase/showcase.js
+          node --check showcase/research-studio.js
       - name: Install DOM test dependency
         run: npm install --no-save --no-package-lock jsdom@26
       - name: Verify showcase ratings, posters, results and research navigation
         run: |
           node tests/showcase.test.js
+          node tests/showcase-research.test.js
           node tests/showcase-default-route.test.js
       - name: Verify existing recommendation algorithms
         run: |
