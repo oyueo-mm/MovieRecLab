@@ -8,9 +8,13 @@ on:
       - feat/showcase-research-redesign
       - feat/rating-and-research-polish
       - feat/showcase-multirail-v5
+      - feat/poster-recommend-v6
   pull_request:
     paths:
       - 'showcase/**'
+      - 'engine.js'
+      - 'tests/quality-ab-live.js'
+      - 'tests/poster-recovery.test.js'
       - 'index.html'
       - 'cinematic/index.html'
       - 'tests/showcase-default-route.test.js'
@@ -36,6 +40,7 @@ jobs:
           node --check showcase/showcase.js
           node --check showcase/research-studio.js
           node --check showcase/recommend-rails.js
+          node --check engine.js
       - name: Install DOM test dependency
         run: npm install --no-save --no-package-lock jsdom@26
       - name: Verify showcase ratings, posters, results and research navigation
@@ -44,6 +49,7 @@ jobs:
           node tests/showcase-research.test.js
           node tests/showcase-multirail.test.js
           node tests/showcase-default-route.test.js
+          node tests/poster-recovery.test.js
       - name: Verify existing recommendation algorithms
         run: |
           node tests/advanced.test.js
@@ -53,3 +59,6 @@ jobs:
           node tests/i18n.test.js
       - name: Verify original UI DOM functionality
         run: node tests/ui-dom-integration.test.js
+
+      - name: Measure real MovieLens User KNN / Content recommendation quality
+        run: node tests/quality-ab-live.js
