@@ -1,0 +1,49 @@
+name: V11 MovieLens 25M cold-start adaptive benchmark
+on:
+  push:
+    branches:
+      - feat/v11-adaptive-cold-start
+    paths:
+      - 'scripts/benchmark_v11.py'
+      - '.github/workflows/train-v11.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/v11-adaptive-cold-start
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check training scripts
+        run: python -m py_compile scripts/benchmark_v11.py scripts/benchmark_v10.py scripts/train_ml25m.py
+      - name: Install offline training dependencies
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 scikit-learn==1.6.1
+      - name: Evaluate new users for 3, 5, 10, 20, 50 and 100 ratings
+        env:
+          OPENBLAS_NUM_THREADS: '2'
+          OMP_NUM_THREADS: '2'
+          MKL_NUM_THREADS: '2'
+        run: python -u scripts/benchmark_v11.py
+      - name: Verify independent holdouts, trained coefficients and release gates
+        run: |
+          node --check showcase/v11-config.js
+          python -c "import json; d=json.load(open('showcase/v11-benchmark.json')); assert d['ratings']>24000000; assert d['films']>8000; assert d['validationUsers']>100 and d['testUsers']>100; assert len(d['selection'])==6; assert all(str(p) in d['selection'] for p in [3,5,10,20,50,100]); print(d['selection'])"
+      - name: Commit only aggregate scores and selected weight schedule
+        run: |
+          git add showcase/v11-config.js showcase/v11-benchmark.json
+          if git diff --cached --quiet; then exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "build(v11): publish independent cold-start validation and gated weight schedule [skip ci]"
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin feat/v11-adaptive-cold-start
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" rebase origin/feat/v11-adaptive-cold-start
+            if git push origin HEAD:feat/v11-adaptive-cold-start; then exit 0; fi
+            sleep 2
+          done
+          echo 'Could not fast-forward publish. No force push.' >&2
+          exit 1
