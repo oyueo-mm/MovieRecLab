@@ -169,6 +169,9 @@ def train(genome,gfound,matrix):
     tags[valid]=vec
     return item,tags,centers,cohorts,usage,sizes
 
+TAG_VARIANTS={'tag':(.57,.43,.065),'tag-pop20':(.48,.32,.20),'tag-pop40':(.35,.25,.40),'tag-cf':(.27,.65,.08)}
+USER_VARIANTS={'user':(.50,.50,.03),'user-pop30':(.35,.35,.30),'user-pop50':(.25,.25,.50),'user-pop70':(.15,.15,.70),'user-cf':(.50,.20,.30)}
+
 def ranker(ids,meta,item,tags,centers,cohorts,usage):
     n=len(ids);pop=np.log1p(usage).astype(np.float32)
     pop/=max(1e-8,float(pop.max()))
@@ -184,9 +187,10 @@ def ranker(ids,meta,item,tags,centers,cohorts,usage):
         semantic=normalize((weights@tags[anchor])[None,:])[0]
         cf=item@collab
         sf=tags@semantic
-        if mode=="tag":
-            score=.57*sf+.43*cf+.065*pop
-        elif mode=="user":
+        if mode in TAG_VARIANTS:
+            semanticWeight,collabWeight,popWeight=TAG_VARIANTS[mode]
+            score=semanticWeight*sf+collabWeight*cf+popWeight*pop
+        elif mode in USER_VARIANTS:
             closeness=centers@collab
             top=np.argsort(-closeness)[:5]
             s=np.zeros(n,dtype=np.float32);w=0
@@ -196,7 +200,9 @@ def ranker(ids,meta,item,tags,centers,cohorts,usage):
                 w+=factor
                 for rank,(j,value) in enumerate(cohorts[int(i)]):
                     s[j]+=factor*float(value)/(1+.025*rank)
-            score=.50*cf+.50*(s/max(.0001,w))/max(.0001,max(s/max(.0001,w)))+.03*pop
+            cfWeight,groupWeight,popWeight=USER_VARIANTS[mode]
+            groupSignal=(s/max(.0001,w))/max(.0001,max(s/max(.0001,w)))
+            score=cfWeight*cf+groupWeight*groupSignal+popWeight*pop
         elif mode=="genres":
             liked=[(meta.get(ids[i],{}).get("genre",set()),(r-3)/2) for i,r in anchors]
             g=np.zeros(n,dtype=np.float32)
@@ -215,40 +221,56 @@ def ranker(ids,meta,item,tags,centers,cohorts,usage):
 
 def evaluate(held,ids,meta,item,tags,centers,cohorts,usage):
     core=ranker(ids,meta,item,tags,centers,cohorts,usage)
-    result={}
-    for nprofile in (5,10):
-        agg={k:np.zeros(3,dtype=np.float64) for k in ("popular","genres","tag","user")}
-        eligible=0
-        for uid,history in sorted(held.items()):
-            ordered=sorted(history,key=lambda x:(x[2],x[0]))
-            ntest=max(3,int(.2*len(ordered)))
-            profile=ordered[:-ntest][:nprofile]
-            positives=set(i for i,r,t in ordered[-ntest:] if r>=4)
-            if len(profile)<nprofile or not positives:continue
-            eligible+=1
-            for mode in agg:
-                predicted=core(profile,mode)
-                agg[mode]+=hit_metrics(predicted,positives)
-        print("HOLDOUT",nprofile,"evaluated",eligible,flush=True)
-        if eligible<25:raise RuntimeError("Too few held-out users to evaluate")
-        result[str(nprofile)]={k:{"ndcg":round(float(v[0]/eligible),6),"recall":round(float(v[1]/eligible),6),"hit":round(float(v[2]/eligible),6)} for k,v in agg.items()}
-        print("scores",nprofile,json.dumps(result[str(nprofile)]),flush=True)
-    return result
+    variants=("popular","genres",*TAG_VARIANTS.keys(),*USER_VARIANTS.keys())
+    aggregates={phase:{str(p):{name:np.zeros(3,dtype=np.float64) for name in variants} for p in (5,10)} for phase in ("validation","test")}
+    numbers={phase:{"5":0,"10":0} for phase in ("validation","test")}
+    for uid,history in sorted(held.items()):
+        ordered=sorted(history,key=lambda x:(x[2],x[0]))
+        ntest=max(3,int(.2*len(ordered)))
+        positives=set(i for i,r,t in ordered[-ntest:] if r>=4)
+        phase="validation" if uid%2==0 else "test"
+        for count in (5,10):
+            profile=ordered[:-ntest][:count]
+            if len(profile)<count or not positives:continue
+            numbers[phase][str(count)]+=1
+            for mode in variants:
+                aggregates[phase][str(count)][mode]+=hit_metrics(core(profile,mode),positives)
+    for phase in numbers:
+        if min(numbers[phase].values())<25:raise RuntimeError("Insufficient "+phase+" user-level holdout")
+    def measures(phase,count,model):
+        values=aggregates[phase][str(count)][model]/numbers[phase][str(count)]
+        return {"ndcg":round(float(values[0]),6),"recall":round(float(values[1]),6),"hit":round(float(values[2]),6)}
+    def best(variants):
+        return max(variants,key=lambda name:sum(measures("validation",count,name)["ndcg"] for count in (5,10)))
+    selectedTag=best(TAG_VARIANTS)
+    selectedUser=best(USER_VARIANTS)
+    print("hyperparameters selected on VALIDATION only:",selectedUser,selectedTag,flush=True)
+    metrics={}
+    validation={}
+    for count in (5,10):
+        metrics[str(count)]={name:measures("test",count,name) for name in ("popular","genres",selectedTag,selectedUser)}
+        metrics[str(count)]["tag"]=metrics[str(count)].pop(selectedTag) if selectedTag!="tag" else metrics[str(count)]["tag"]
+        metrics[str(count)]["user"]=metrics[str(count)].pop(selectedUser) if selectedUser!="user" else metrics[str(count)]["user"]
+        validation[str(count)]={"popular":measures("validation",count,"popular"),"genres":measures("validation",count,"genres"),"tag":measures("validation",count,selectedTag),"user":measures("validation",count,selectedUser)}
+        print("TEST",count,"N",numbers["test"][str(count)],json.dumps(metrics[str(count)]),flush=True)
+    quality={"user":all(metrics[str(count)]["user"]["ndcg"]>metrics[str(count)]["popular"]["ndcg"] for count in (5,10)),"similarity":all(metrics[str(count)]["tag"]["ndcg"]>metrics[str(count)]["genres"]["ndcg"] for count in (5,10))}
+    print("ACCEPT_ON_TEST",quality,flush=True)
+    return metrics,validation,quality,{"user":USER_VARIANTS[selectedUser],"similarity":TAG_VARIANTS[selectedTag],"selectedUser":selectedUser,"selectedTag":selectedTag},numbers
 
-def write_artifacts(ids,item,tags,centers,cohorts,usage,sizes,metrics,stats):
+def write_artifacts(ids,item,tags,centers,cohorts,usage,sizes,metrics,validation,quality,selected,numbers,stats):
     # Only compact derived latent coefficients and aggregated 36-cohort preferences are published.
     # Explicit ratings, usernames, raw Tag Genome matrix, training data ZIP are NEVER published.
     quant=lambda a:[int(round(max(-1,min(1,float(v)))*120)) for v in a]
     details=[]
     for i,id in enumerate(ids):
         if usage[i]<10:continue
-        details.append([id,quant(item[i]),quant(tags[i]),int(round(float(usage[i]))//5)])
+        details.append([id,quant(item[i]),quant(tags[i]),int(round(float(np.log1p(usage[i])/max(1e-8,np.log1p(usage).max()))*1000))])
     groups=[[[ids[i],int(round(value*10000))] for i,value in hits] for hits in cohorts]
-    dataset={"version":"25m-2026-v9","source":"MovieLens 25M + Tag Genome","dims":LATENT,"ratingsTrained":stats["ratings"],"count":len(details),"films":details,"centers":[quant(x) for x in centers],"cohorts":groups,"evaluation":metrics}
+    dataset={"version":"25m-2026-v9","source":"MovieLens 25M + Tag Genome","dims":LATENT,"ratingsTrained":stats["ratings"],"count":len(details),"films":details,"centers":[quant(x) for x in centers],"cohorts":groups,"evaluation":metrics,"quality":quality,"weights":selected}
     text="/* Derived low-dimensional research model; no original ratings or raw Tag Genome data. */\nwindow.MovieRec25MData="+json.dumps(dataset,separators=(",",":"),ensure_ascii=False)+";\n"
     OUT_DIR.mkdir(exist_ok=True)
     (OUT_DIR/"ml25m-model.js").write_text(text,encoding="utf-8")
-    (OUT_DIR/"ml25m-evaluation.json").write_text(json.dumps({"dataset":"MovieLens 25M","holdout":"user-level, most recent 20%, same candidate pool","metrics":metrics,"counts":stats},ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    (OUT_DIR/"ml25m-evaluation.json").write_text(json.dumps({"dataset":"MovieLens 25M","holdout":"user-level, most recent 20%, same candidate pool","metrics":metrics,"validation":validation,"quality":quality,"weights":selected,"evaluationUsers":numbers,"counts":stats},ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     size=(OUT_DIR/"ml25m-model.js").stat().st_size
     print("exported movie factors",len(details),"cohorts",len(groups),"bytes",size,flush=True)
     if size>12*1024*1024:raise RuntimeError("Web model too large")
@@ -262,9 +284,9 @@ def main():
         with zipfile.ZipFile(archive) as zf:
             ids,meta,genome,gfound,matrix,held,total=prepare(zf,linkset,meta)
         item,tags,centers,cohorts,usage,sizes=train(genome,gfound,matrix)
-        metrics=evaluate(held,ids,meta,item,tags,centers,cohorts,usage)
+        metrics,validation,quality,selected,numbers=evaluate(held,ids,meta,item,tags,centers,cohorts,usage)
         stats={"ratings":total,"users":int(matrix.shape[0]),"matchedMovies":len(ids),"tagGenomeMovies":int(gfound.sum()),"testUsers":len(held),"cohorts":GROUPS}
-        write_artifacts(ids,item,tags,centers,cohorts,usage,sizes,metrics,stats)
+        write_artifacts(ids,item,tags,centers,cohorts,usage,sizes,metrics,validation,quality,selected,numbers,stats)
     print("COMPLETE",flush=True)
 
 if __name__=="__main__":main()
