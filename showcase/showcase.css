@@ -72,3 +72,10 @@
 .showcase .research-tabs button[aria-current="page"]{background:#e9ecee;color:#121618}
 .showcase[data-view="research"] #coreFrame{top:117px;height:calc(100% - 117px);background:#090c0f}
 @media(max-width:680px){.showcase .research-bar{height:57px;padding:0 14px;gap:8px}.showcase .research-bar span{font-size:14px}.showcase .research-bar button{width:36px;height:36px}.showcase .research-tabs{top:57px;min-height:51px;padding:7px 12px;gap:4px}.showcase .research-tabs button{font-size:11px;min-height:34px;padding:8px 12px}.showcase[data-view="research"] #coreFrame{top:108px;height:calc(100% - 108px)}}
+
+/* Rating interaction: subdued, accessible single-film undo; no artwork re-animation. */
+.showcase .rating-panel{gap:12px;flex-wrap:wrap}
+.showcase .clear-rating{padding:6px 10px;background:#ffffff19;border:1px solid #ffffff3a;border-radius:4px;color:#e9e9e9;font-size:11px;font-weight:650;line-height:1.4;min-height:30px;white-space:nowrap;transition:background .18s ease,border-color .18s ease}
+.showcase .clear-rating:hover{background:#ffffff33;border-color:#ffffff7d}
+.showcase .clear-rating:focus-visible{outline:2px solid #f5d2a4;outline-offset:2px}
+@media(max-width:680px){.showcase .rating-panel{gap:8px}.showcase .clear-rating{font-size:10px;padding:5px 8px;min-height:28px}}
