@@ -29,7 +29,7 @@ SEED = 20261112
 LATENT = 24
 GROUPS = 36
 EXCLUDE_REMAINDER = 17
-EXCLUDE_MODULUS = 2033
+EXCLUDE_MODULUS = 509
 BUDGET_MB = 120
 
 def download(url, path):
@@ -169,8 +169,8 @@ def train(genome,gfound,matrix):
     tags[valid]=vec
     return item,tags,centers,cohorts,usage,sizes
 
-TAG_VARIANTS={'tag':(.57,.43,.065),'tag-pop20':(.48,.32,.20),'tag-pop40':(.35,.25,.40),'tag-cf':(.27,.65,.08)}
-USER_VARIANTS={'user':(.50,.50,.03),'user-pop30':(.35,.35,.30),'user-pop50':(.25,.25,.50),'user-pop70':(.15,.15,.70),'user-cf':(.50,.20,.30)}
+TAG_VARIANTS={'tag':(.57,.43,.065),'tag-pop20':(.48,.32,.20),'tag-pop40':(.35,.25,.40),'tag-pop60':(.20,.20,.60),'tag-cf':(.27,.65,.08),'tag-heavy':(.75,.20,.05),'tag-cf70':(.20,.70,.10)}
+USER_VARIANTS={'user':(.50,.50,.03),'user-pop30':(.35,.35,.30),'user-pop50':(.25,.25,.50),'user-pop70':(.15,.15,.70),'user-pop85':(.075,.075,.85),'user-cf':(.50,.20,.30),'user-cf80':(.80,.10,.10),'user-neighbors':(.20,.70,.10)}
 
 def ranker(ids,meta,item,tags,centers,cohorts,usage):
     n=len(ids);pop=np.log1p(usage).astype(np.float32)
