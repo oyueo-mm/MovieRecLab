@@ -1,5 +1,27 @@
 # V6 — Poster recovery and evidence-tested recommendation updates
 
+## V7 — Verified poster registry (2026-11-12)
+
+**Problem:** V6 tried several Metahub variants and Cinemeta lookups, but these often resolved to the same failing image. User screenshots showed multiple title-only tiles in the multi-row recommendations.
+
+**Fix:** `showcase/poster-map.js` is a generated, static registry of **9,522 film-specific TMDb poster paths**, identified by matching **both IMDb and TMDb IDs** against the MovieLens latest-small `links.csv` records. The dataset has 9,742 movies; 9,734 have both IDs, and 9,522 rows were matched to poster paths. Thus about **97.7% of catalog titles have an identified poster path**, which is NOT the same as a verified HTTP 200 image success rate.
+
+**Runtime priority:** cached successful poster > movie-ID-validated `image.tmdb.org/t/p/w342` path > the small curated movie list > existing Metahub/Cinemeta fallback chain > original title card. Every URL is HTTPS on an approved image host and every image error still advances to the next film-matched source.
+
+**Build provenance:**
+- GroupLens MovieLens latest-small `links.csv`: [pinned mirror](https://github.com/smanihwr/ml-latest-small/tree/ba3cd91761e54faa64483456b619d1a1f4d70971)
+- [TMDb-derived public movie metadata](https://github.com/sachinmasti/movie-data-cleaning/tree/8be8af3197fdfbfeca1c25eee76f3e6c8973c701) (`movies_metadata.csv`, 45k films). The generator **requires the IMDb ID and TMDb ID to match simultaneously**, rejects invalid poster paths, and records conflicts.
+- Generator: `scripts/build-poster-map.py`, which stores **only URLs' poster file paths**, not the copyrighted poster images. The actual media remains served by TMDb. TMDb attribution in the Showcase credits is unchanged.
+
+The map is generated through an isolated GitHub Action on the feature branch and committed to `showcase/poster-map.js`. `showcase/index.html` loads it before `art.js`; no changes were made to the recommendation engine, movie ratings, three-row structure or evaluation algorithm.
+
+**Limitations:** The 45k metadata snapshot includes older films and may have stale image paths, so a small subset may still fail. Real-browser network restrictions and image hosting availability cannot be guaranteed by a checked dataset path. The map is roughly 405 KB uncompressed, is cached as a static JavaScript asset and is not repeatedly fetched per image.
+
+**Rollback:** Pre-change `main` commit `00c8a73457aa0d46b12462003638bd1e066d476b` preserved at `backup/pre-poster-coverage-v7-2026-11-12`. Revert only the V7 pull request to restore the V6 poster loader and previously approved multi-row design; never force push or overwrite the backup.
+
+---
+
+
 This release changes only image retrieval and recommendation scoring. The existing cinematic hero, rating flow, three ranked recommendation rows, search and research views retain their structure.
 
 ## Posters

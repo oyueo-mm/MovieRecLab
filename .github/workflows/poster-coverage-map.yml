@@ -1,0 +1,32 @@
+name: Build verified MovieLens poster lookup
+on:
+  push:
+    branches: [feat/poster-coverage-v7]
+    paths:
+      - 'scripts/build-poster-map.py'
+      - '.github/workflows/poster-coverage-map.yml'
+permissions:
+  contents: write
+jobs:
+  poster-map:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/poster-coverage-v7
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Derive poster paths with verified MovieLens IDs
+        run: python scripts/build-poster-map.py
+      - name: Commit generated map to feature branch
+        run: |
+          git add showcase/poster-map.js
+          if git diff --cached --quiet; then
+            echo "Poster map already current."
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "build(posters): add movie-ID-verified static poster registry [skip ci]"
+          git push origin HEAD:feat/poster-coverage-v7
