@@ -1,5 +1,21 @@
 # MovieRecLab Showcase V2 — independent, reversible
 
+## Official landing page (2026-11-12)
+
+The **official root URL** https://oyueo-mm.github.io/MovieRecLab/ now performs a very small same-origin client-side redirect to **/MovieRecLab/showcase/** for top-level visitors.
+
+The legacy application remains physically intact in `index.html`:
+- Direct legacy access: https://oyueo-mm.github.io/MovieRecLab/?legacy=1
+- Showcase engine iframe: `../index.html` (no redirect because `window.top !== window.self`)
+- Old cinematic engine iframe: `../index.html` (same guard)
+- Published showcase preview: /MovieRecLab/showcase/
+- Previous cinematic version: /MovieRecLab/cinematic/
+
+There is no server rewrite; it is an immediate `location.replace()` in the head and does not add an extra back-button history step. With JavaScript disabled, the original application remains the fallback. The original recommendation engine, model training and other scripts were not changed.
+
+**Rollback of the official route**: revert only the official-launch PR, which removes the early redirect and restores the original root page. This does NOT require reverting showcase development or deleting the /showcase/ route. The exact pre-launch tree is also preserved on `backup/pre-showcase-default-2026-11-12` (commit `301ed38325a64ae7109f79c0fb403c72e4f12882`). No force-push.
+
+
 ## Experience
 - /showcase/ is an independent full-screen film hero with real per-film poster rail, background artwork, 0.5-step ratings, search, presets and actual recommendations.
 - Recommendations, algorithms, EDA, visualizations and evaluation are connected to the original app via a same-origin iframe bridge, without copying the model. The original engine, scripts and data remain unchanged.
