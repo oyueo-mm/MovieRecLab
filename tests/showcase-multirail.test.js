@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const read=p=>fs.readFileSync(path.resolve(__dirname,'..',p),'utf8');
 const html=read('showcase/index.html'),css=read('showcase/showcase.css'),code=read('showcase/recommend-rails.js'),bridge=read('showcase/bridge.js'),showcase=read('showcase/showcase.js');
 new vm.Script(code,{filename:'recommend-rails.js'});new vm.Script(bridge);new vm.Script(showcase);
-assert.match(html,/id="recommendRows"/);assert.match(html,/id="recommendRowsInner"/);assert.match(html,/id="featureFilm"/);assert.match(html,/src="\.\/recommend-rails\.js"/);
+assert.match(html,/id="recommendRows"/);assert.match(html,/id="recommendRowsInner"/);assert.match(html,/id="featureFilm"/);assert.match(html,/src="\.\/recommend-rails\.js(?:\?v=\d+)?"/);
 assert.match(css,/\.showcase\[data-view="results"\] \.recommend-rows/);
 assert.match(css,/\.showcase\[data-view="results"\] \.poster-zone\{display:none/);
 assert.match(css,/\.showcase\[data-view="results"\]\{overflow-y:auto/);
