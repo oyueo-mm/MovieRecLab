@@ -10,6 +10,7 @@ on:
       - feat/showcase-multirail-v5
       - feat/poster-recommend-v6
       - feat/poster-coverage-v7
+      - fix/poster-loading-v8
   pull_request:
     paths:
       - 'showcase/**'
@@ -17,6 +18,7 @@ on:
       - 'tests/quality-ab-live.js'
       - 'tests/poster-recovery.test.js'
       - 'tests/poster-map.test.js'
+      - 'tests/poster-lazy-render.test.js'
       - 'scripts/build-poster-map.py'
       - 'tests/recommend-upgrades.test.js'
       - 'index.html'
@@ -56,6 +58,7 @@ jobs:
           node tests/showcase-default-route.test.js
           node tests/poster-recovery.test.js
           node tests/poster-map.test.js
+          node tests/poster-lazy-render.test.js
       - name: Verify existing recommendation algorithms
         run: |
           node tests/advanced.test.js
