@@ -10,7 +10,7 @@ Two **secondary recommendation rows** can use the newly trained model:
 
 - **좋아한 영화와 비슷한 영화** — Tag Genome latent film features plus 25M-trained collaborative film factors. Automatically used only when its user-level test NDCG exceeds the genre-based baseline at both 5 and 10 input ratings.
 - **비슷한 사용자가 좋아한 영화** — preferences aggregated over 36 groups of users whose 25M collaborative factors are similar. Automatically used only when held-out test NDCG exceeds simple 25M popularity at both input sizes. This is **cohort-based approximate neighbor scoring**, not individual User KNN.
-- In the menu, the small **25M 실험 추천** checkbox explicitly tries both 25M secondary models even if a model fails its test threshold. By default the checkbox is off; the original V8 scorer takes over automatically for failed or unavailable models. **Do not present this experiment as a proven quality improvement.**
+- In the menu, **추가 추천 모델** offers three explicit, reversible choices: **검증된 25M만 적용** (default; only models passing held-out tests), **기존 추천 (V8)** (immediate full fallback), or **25M 전체 실험** (explicitly try both 25M secondary scorers even if the test criterion failed). **Do not present this experiment as a proven quality improvement.**
 
 The **first EASE row still runs the original MovieLens latest-small model**. The static site has not loaded or retrained EASE across 25M interactions because a full 60k-plus movie dense EASE inverse would exceed reasonable browser memory. The model-level change is scoped and honestly labeled.
 
@@ -36,7 +36,7 @@ Source-code guard:
 - `source.quality.similarity===true` enables the Tag Genome row by default.
 - `source.quality.user===true` enables the cohort row by default.
 - If a guard is false or a user's selected films do not have enough valid 25M factors, the original V8 recommendation method is used for that row.
-- The *experimental* menu checkbox overrides quality gates only by an explicit user choice. It does **not** change the original EASE row.
+- The menu option **25M 전체 실험** overrides quality gates only by an explicit user choice. **기존 추천 (V8)** immediately returns both secondary rows to their previous algorithms. None of the menu options changes the original EASE row.
 
 An experiment should not be said to beat the existing V8 User KNN without a head-to-head offline comparison on an identical frozen candidate set and user split; the existing V8 baseline was trained on a different dataset.
 
