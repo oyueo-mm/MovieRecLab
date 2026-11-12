@@ -129,3 +129,13 @@
 .showcase .hero-source{display:inline-flex;align-items:center;font-size:11px;color:#d5dade;font-weight:550;margin-left:10px;padding:5px 0}
 .showcase .hero-source[hidden]{display:none!important}
 @media(max-width:680px){.showcase .hero-source{margin:7px 0 0;display:block;font-size:10px}}
+
+/* Poster recovery V8: native lazy-loaded IMG elements must remain in layout during retries.
+   Hiding them with display:none can prevent the next source from ever loading. */
+.showcase img.poster-pending{opacity:0!important}
+.showcase .recommend-card-art>img,.showcase .recommend-card-art>.recommend-card-fallback{grid-area:1/1}
+.showcase .recommend-card-art>img{align-self:stretch;justify-self:stretch;min-width:0;min-height:0}
+.showcase .recommend-card-fallback{z-index:1}
+.showcase .search-item{position:relative}
+.showcase .search-item .search-fallback{position:absolute;left:0;top:50%;transform:translateY(-50%);z-index:1}
+.showcase .search-item .search-fallback[hidden]{display:none!important}
