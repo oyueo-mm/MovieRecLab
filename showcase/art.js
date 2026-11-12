@@ -28,13 +28,14 @@
     if(!img||!movie)return()=>{};
     const id=Number(movie.id);let cancelled=false,urls=preview(movie).posterCandidates.slice(),index=0,visited=new Set(),metadataReceived=false;
     let listeners=posterListeners.get(id);if(!listeners){listeners=new Set();posterListeners.set(id,listeners);}
-    const setPoster=url=>{if(cancelled||!url||img.src===url)return;const accepted=safe(url);if(!accepted||failedUrls.has(accepted))return;visited.add(accepted);img.src=accepted;};
+    const setPoster=url=>{if(cancelled||!url||img.src===url)return;const accepted=safe(url);if(!accepted||failedUrls.has(accepted))return;visited.add(accepted);img.classList.add('poster-pending');img.hidden=false;img.src=accepted;};
     const announce=url=>{successfulPosters.set(id,url);const subscribers=posterListeners.get(id);if(subscribers)for(const notify of subscribers)notify(url);};
     const hear=url=>{if(!cancelled&&url&&img.src!==url)setPoster(url);};
     listeners.add(hear);
+    img.hidden=false;img.classList.add('poster-pending');
     const next=()=>{if(cancelled)return;const winner=successfulPosters.get(id);if(winner&&!visited.has(winner)&&!failedUrls.has(winner)){setPoster(winner);return;}while(index<urls.length){const url=urls[index++];if(visited.has(url)||failedUrls.has(url))continue;setPoster(url);return;}if(!metadataReceived){metadataReceived=true;get(movie).then(a=>{if(cancelled)return;urls=unique([...urls,...a.posterCandidates]).filter(url=>!failedUrls.has(url));next();}).catch(()=>{});}};
-    img.onload=()=>{if(cancelled)return;img.hidden=false;if(fallback)fallback.hidden=true;announce(img.currentSrc||img.src);};
-    img.onerror=()=>{if(cancelled)return;if(img.src)failedUrls.add(img.src);img.hidden=true;if(fallback)fallback.hidden=false;next();};
+    img.onload=()=>{if(cancelled)return;img.hidden=false;img.classList.remove('poster-pending');if(fallback)fallback.hidden=true;const winner=img.currentSrc||img.src;failedUrls.delete(winner);announce(winner);};
+    img.onerror=()=>{if(cancelled)return;if(img.src)failedUrls.add(img.src);img.hidden=false;img.classList.add('poster-pending');if(fallback)fallback.hidden=false;next();};
     next();
     return()=>{cancelled=true;img.onload=null;img.onerror=null;const group=posterListeners.get(id);group?.delete(hear);if(group?.size===0)posterListeners.delete(id);};
   }
