@@ -1,0 +1,17 @@
+'use strict';
+/* Presentation-only adapter; operates on the existing app inside the same-origin iframe.
+   Movie identifiers and rankings come from the real comparison results, not from title guesses. */
+(function(root){
+  const initialized=new WeakMap();
+  function disclosure(doc,node,label,cssClass){if(!node||node.closest('details.'+cssClass))return;const details=doc.createElement('details'),summary=doc.createElement('summary');details.className=cssClass;summary.textContent=label;details.append(summary);node.replaceWith(details);details.append(node);}
+  function guide(doc){doc.querySelectorAll('#guide .guide-section').forEach(section=>{if(section.closest('details.guide-disclosure'))return;const h2=section.querySelector('h2');if(!h2)return;const details=doc.createElement('details'),summary=doc.createElement('summary');details.className='guide-disclosure';summary.textContent=h2.textContent;details.append(summary);for(const child of [...section.childNodes])if(child!==h2)details.append(child);section.replaceWith(details);});}
+  function initialize(doc,bridge,Art){if(!doc?.body||!bridge||!Art)return null;if(initialized.has(doc))return initialized.get(doc);guide(doc);disclosure(doc,doc.querySelector('#compare>.pane>.note'),'비교 기준과 주의사항','disclosure-note');disclosure(doc,doc.querySelector('#evaluate>.pane>.note'),'평가 방법과 한계','disclosure-note');disclosure(doc,doc.getElementById('vizExplanation'),'시각화 해석','viz-disclosure');const compare=doc.getElementById('compareResults');let scheduled=false,closed=false;
+    function refreshCompare(){if(!compare||closed)return;const sets=typeof bridge.comparison==='function'?bridge.comparison():[];const cards=[...compare.querySelectorAll('.compare-card')];cards.forEach((card,column)=>{const realSet=sets[column];if(!realSet)return;const entries=[...card.querySelectorAll('.compare-item')];entries.forEach((item,row)=>{const movie=realSet.recs?.[row]?.movie;if(!movie||item.querySelector('.research-film-thumb'))return;const thumb=doc.createElement('span');thumb.className='research-film-thumb';thumb.setAttribute('aria-hidden','true');const fallback=doc.createElement('span');fallback.textContent=movie.title||movie.original||'영화';thumb.append(fallback);item.prepend(thumb);
+      const update=url=>{if(closed||!item.isConnected||!url)return;const image=doc.createElement('img');image.alt='';image.loading='lazy';image.onerror=()=>{image.remove();fallback.hidden=false;};image.onload=()=>{fallback.hidden=true;};image.src=url;const prior=thumb.querySelector('img');prior?.remove();thumb.prepend(image);};
+      const seed=Art.preview(movie);if(seed.poster)update(seed.poster);Art.get(movie).then(data=>{if(data?.poster&&data.poster!==(thumb.querySelector('img')?.src))update(data.poster);}).catch(()=>{});
+    });});}
+    function schedule(){if(scheduled||closed)return;scheduled=true;doc.defaultView.requestAnimationFrame(()=>{scheduled=false;refreshCompare();});}
+    const observer=compare?new doc.defaultView.MutationObserver(schedule):null;observer?.observe(compare,{childList:true,subtree:true});refreshCompare();
+    const api={refresh:refreshCompare,setBackdrop(url){const safe=typeof url==='string'&&url.startsWith('https://')?url.replace(/["\\\n\r]/g,''):null;doc.documentElement.style.setProperty('--research-photo',safe?'url("'+safe+'")':'none');},destroy(){closed=true;observer?.disconnect();initialized.delete(doc);}};initialized.set(doc,api);return api;}
+  root.MovieRecResearchStudio={initialize};
+})(window);
