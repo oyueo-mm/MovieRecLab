@@ -4,7 +4,7 @@ const base=path.resolve(__dirname,'..'),read=p=>fs.readFileSync(path.join(base,p
 const html=read('showcase/index.html'),css=read('showcase/showcase.css'),bridgeText=read('showcase/bridge.js'),artText=read('showcase/art.js'),showcaseText=read('showcase/showcase.js');
 for(const file of ['showcase/bridge.js','showcase/art.js','showcase/showcase.js'])new vm.Script(read(file),{filename:file});
 assert.match(html,/<iframe[^>]+src="\.\.\/index\.html"/);
-assert.match(html,/src="\.\/art\.js(?:\?v=\d+)?"/);assert.match(html,/src="\.\/showcase\.js"/);
+assert.match(html,/src="\.\/art\.js(?:\?v=\d+)?"/);assert.match(html,/src="\.\/showcase\.js(?:\?v=\d+)?"/);
 assert.doesNotMatch(html,/src="\.\.\/app\.js"/);
 for(const id of ['backdropA','backdropB','posterRail','filmTitle','stars','primary','modelSelect','presetSelect','coreFrame','researchScreen','menuPanel','searchPanel','detailPanel'])assert.match(html,new RegExp('id="'+id+'"'));
 assert.match(css,/\.poster-rail/);assert.match(css,/\.bg-shade/);assert.match(css,/\[hidden\]\{display:none!important\}/);
