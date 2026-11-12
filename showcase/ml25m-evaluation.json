@@ -4,47 +4,121 @@
   "metrics": {
     "5": {
       "popular": {
-        "ndcg": 0.034055,
-        "recall": 0.029046,
-        "hit": 0.227848
+        "ndcg": 0.024782,
+        "recall": 0.036039,
+        "hit": 0.225
       },
       "genres": {
-        "ndcg": 0.028301,
-        "recall": 0.020528,
-        "hit": 0.126582
+        "ndcg": 0.036766,
+        "recall": 0.025794,
+        "hit": 0.125
       },
       "tag": {
-        "ndcg": 0.029027,
-        "recall": 0.028289,
-        "hit": 0.202532
+        "ndcg": 0.031197,
+        "recall": 0.038298,
+        "hit": 0.275
       },
       "user": {
-        "ndcg": 0.027459,
-        "recall": 0.014503,
-        "hit": 0.189873
+        "ndcg": 0.020308,
+        "recall": 0.015392,
+        "hit": 0.2
       }
     },
     "10": {
       "popular": {
-        "ndcg": 0.035402,
-        "recall": 0.029649,
-        "hit": 0.227848
+        "ndcg": 0.02505,
+        "recall": 0.036039,
+        "hit": 0.225
       },
       "genres": {
-        "ndcg": 0.027711,
-        "recall": 0.021889,
-        "hit": 0.126582
+        "ndcg": 0.035546,
+        "recall": 0.03032,
+        "hit": 0.15
       },
       "tag": {
-        "ndcg": 0.036278,
-        "recall": 0.027707,
-        "hit": 0.177215
+        "ndcg": 0.046281,
+        "recall": 0.046702,
+        "hit": 0.2
       },
       "user": {
-        "ndcg": 0.030422,
-        "recall": 0.030262,
-        "hit": 0.227848
+        "ndcg": 0.023872,
+        "recall": 0.026734,
+        "hit": 0.175
       }
+    }
+  },
+  "validation": {
+    "5": {
+      "popular": {
+        "ndcg": 0.043566,
+        "recall": 0.021873,
+        "hit": 0.230769
+      },
+      "genres": {
+        "ndcg": 0.019619,
+        "recall": 0.015127,
+        "hit": 0.128205
+      },
+      "tag": {
+        "ndcg": 0.041568,
+        "recall": 0.030678,
+        "hit": 0.25641
+      },
+      "user": {
+        "ndcg": 0.040716,
+        "recall": 0.018878,
+        "hit": 0.205128
+      }
+    },
+    "10": {
+      "popular": {
+        "ndcg": 0.046019,
+        "recall": 0.023094,
+        "hit": 0.230769
+      },
+      "genres": {
+        "ndcg": 0.019676,
+        "recall": 0.013241,
+        "hit": 0.102564
+      },
+      "tag": {
+        "ndcg": 0.025607,
+        "recall": 0.017006,
+        "hit": 0.179487
+      },
+      "user": {
+        "ndcg": 0.041891,
+        "recall": 0.04738,
+        "hit": 0.282051
+      }
+    }
+  },
+  "quality": {
+    "user": false,
+    "similarity": false
+  },
+  "weights": {
+    "user": [
+      0.15,
+      0.15,
+      0.7
+    ],
+    "similarity": [
+      0.35,
+      0.25,
+      0.4
+    ],
+    "selectedUser": "user-pop70",
+    "selectedTag": "tag-pop40"
+  },
+  "evaluationUsers": {
+    "validation": {
+      "5": 39,
+      "10": 39
+    },
+    "test": {
+      "5": 40,
+      "10": 40
     }
   },
   "counts": {
