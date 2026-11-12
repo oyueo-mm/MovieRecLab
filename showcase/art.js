@@ -33,7 +33,7 @@
     const hear=url=>{if(!cancelled&&url&&img.src!==url)setPoster(url);};
     listeners.add(hear);
     img.hidden=false;img.classList.add('poster-pending');
-    const next=()=>{if(cancelled)return;const winner=successfulPosters.get(id);if(winner&&!visited.has(winner)&&!failedUrls.has(winner)){setPoster(winner);return;}while(index<urls.length){const url=urls[index++];if(visited.has(url)||failedUrls.has(url))continue;setPoster(url);return;}if(!metadataReceived){metadataReceived=true;get(movie).then(a=>{if(cancelled)return;urls=unique([...urls,...a.posterCandidates]).filter(url=>!failedUrls.has(url));next();}).catch(()=>{});}};
+    const next=()=>{if(cancelled)return;const winner=successfulPosters.get(id);if(winner&&!visited.has(winner)&&!failedUrls.has(winner)){setPoster(winner);return;}while(index<urls.length){const url=urls[index++];if(visited.has(url)||failedUrls.has(url))continue;setPoster(url);return;}if(!metadataReceived){metadataReceived=true;get(movie).then(a=>{if(cancelled)return;urls=unique([...urls,...a.posterCandidates]);next();}).catch(()=>{});}};
     img.onload=()=>{if(cancelled)return;img.hidden=false;img.classList.remove('poster-pending');if(fallback)fallback.hidden=true;const winner=img.currentSrc||img.src;failedUrls.delete(winner);announce(winner);};
     img.onerror=()=>{if(cancelled)return;if(img.src)failedUrls.add(img.src);img.hidden=false;img.classList.add('poster-pending');if(fallback)fallback.hidden=false;next();};
     next();
