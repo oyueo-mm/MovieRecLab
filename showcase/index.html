@@ -22,16 +22,16 @@
   </header>
   <section class="film-stage" aria-label="선택된 영화">
     <div class="film-copy" id="filmCopy">
-      <div class="film-number" id="filmNumber" aria-label="영화 순서">01</div>
       <h1 id="filmTitle">영화를 선택하세요</h1>
       <div class="film-subtitle" id="filmSubtitle"></div>
       <div class="film-genres" id="filmGenres"></div>
+      <button id="modelShortcut" class="model-shortcut" type="button" aria-label="추천 모델 선택" hidden>추천 모델 <span>⌄</span></button>
       <div class="rating-panel" id="ratingPanel"><div id="stars" class="rating-stars" role="group" aria-label="영화 별점 선택"></div><div id="ratingValue" class="rating-value" aria-live="polite"></div></div>
       <div class="reason" id="reason" hidden></div>
       <div class="film-actions">
         <button id="primary" class="primary-btn" type="button" disabled><span id="primaryLabel">데이터 로딩 중</span><span class="arrow">↗</span></button>
         <button id="secondary" class="quiet-btn" type="button">다음 영화 <span>→</span></button>
-        <button id="detailsBtn" class="subtle-btn" type="button" hidden>자세히</button>
+        <button id="detailsBtn" class="subtle-btn" type="button" hidden>상세 정보</button>
       </div>
       <div id="progress" class="progress-text" aria-live="polite">영화 데이터를 불러오는 중입니다.</div>
     </div>
@@ -40,7 +40,7 @@
     <div class="poster-controls"><button id="prev" class="arrow-btn" type="button" aria-label="이전 영화"><span>←</span></button><button id="next" class="arrow-btn" type="button" aria-label="다음 영화"><span>→</span></button></div>
     <div id="posterRail" class="poster-rail" role="list" tabindex="0" aria-label="영화 선택"></div>
   </section>
-  <div class="bottom-bar"><span id="bottomCount" class="bottom-count"></span><button id="switchView" type="button" class="bottom-switch" hidden></button></div>
+  <div class="bottom-bar"><button id="switchView" type="button" class="bottom-switch" hidden></button></div>
   <div class="panel-backdrop" id="panelBackdrop" hidden></div>
   <aside id="menuPanel" class="side-panel" aria-hidden="true" aria-label="메뉴">
     <div class="panel-top"><button id="menuClose" class="panel-close" aria-label="메뉴 닫기" type="button">×</button></div>
