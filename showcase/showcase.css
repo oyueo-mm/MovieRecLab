@@ -139,3 +139,9 @@
 .showcase .search-item{position:relative}
 .showcase .search-item .search-fallback{position:absolute;left:0;top:50%;transform:translateY(-50%);z-index:1}
 .showcase .search-item .search-fallback[hidden]{display:none!important}
+
+/* V9 research model opt-in: a discreet control; main cinematic layout remains unchanged. */
+.showcase .v9-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;padding:11px 0;margin:5px 0 12px;font-size:12px;font-weight:650;color:#d4dcdf}
+.showcase .v9-toggle>input{appearance:auto;accent-color:#e1e7e9;width:17px;height:17px;min-height:17px;flex:0 0 17px;cursor:pointer}
+.showcase .v9-toggle:has(input:disabled){opacity:.4;cursor:not-allowed}
+.showcase .v9-toggle:focus-within{outline:2px solid #f1d19a;outline-offset:3px;border-radius:3px}
