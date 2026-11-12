@@ -1,5 +1,18 @@
 # MovieRecLab Showcase V2 — independent, reversible
 
+## Research Studio redesign (2026-11-12)
+
+- Comparison, data analysis (EDA), taste/network/performance visualization, offline evaluation, and algorithm explanations use the same **dark, minimal, cinematic visual language** as the Showcase hero. A compact horizontal tab strip sits under the research header, enabling navigation without reopening the side menu.
+- The app still runs the original computation and chart logic inside its **same-origin iframe**. The only new data exposed by `bridge.js` is a read-only `comparison()` projection of existing `state.lastCompare` so that the cards can show **movie-matched poster thumbnails**. Titles/IDs and ordering come directly from the real algorithm results; missing images remain title fallbacks.
+- All visual styles are scoped by `body.showcase-research` to that embedded document. The normal `/?legacy=1` experience and `/cinematic/` route receive **none** of these overrides.
+- The research plot's original white SVG backing rectangles are darkened via CSS while its data, labels, point interactions and metric semantics remain unchanged. Relevant chart text, grid lines, bars, and tables have new dark contrast.
+- Each algorithm guide, methodological note, and the visualization's full explanation uses native expandable `details` to keep the default layout concise **without deleting source or scientific limitations**.
+- The currently selected film backdrop is used as a subdued decorative ambient image in the research area when available. It is not a data chart or a claim of causation.
+- This release does **not** turn the primary recommendation results into separate model/category rows. That user-proposed design is deliberately deferred until its interaction, ranking interpretation and model separation are approved.
+- Backup baseline: `683dc9f38701a6254ab67be34db37b4c7bf4a345`, permanently referenced by convention via `backup/pre-research-redesign-2026-11-12`.
+- Revert the Research Studio PR to restore the original Showcase research presentation. The original film showcase, recommendation models and data are unchanged.
+
+
 ## V3: streaming-inspired movie browser (2026-11-12)
 
 - Reworked the approved Showcase V2 in place. Film imagery, datasets, original recommendation engine, the independent root redirect and the /cinematic/ experiment are unchanged.
