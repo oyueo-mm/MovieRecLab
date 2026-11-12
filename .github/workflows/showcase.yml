@@ -9,12 +9,15 @@ on:
       - feat/rating-and-research-polish
       - feat/showcase-multirail-v5
       - feat/poster-recommend-v6
+      - feat/poster-coverage-v7
   pull_request:
     paths:
       - 'showcase/**'
       - 'engine.js'
       - 'tests/quality-ab-live.js'
       - 'tests/poster-recovery.test.js'
+      - 'tests/poster-map.test.js'
+      - 'scripts/build-poster-map.py'
       - 'tests/recommend-upgrades.test.js'
       - 'index.html'
       - 'cinematic/index.html'
@@ -38,6 +41,7 @@ jobs:
         run: |
           node --check showcase/bridge.js
           node --check showcase/art.js
+          node --check showcase/poster-map.js
           node --check showcase/showcase.js
           node --check showcase/research-studio.js
           node --check showcase/recommend-rails.js
@@ -51,6 +55,7 @@ jobs:
           node tests/showcase-multirail.test.js
           node tests/showcase-default-route.test.js
           node tests/poster-recovery.test.js
+          node tests/poster-map.test.js
       - name: Verify existing recommendation algorithms
         run: |
           node tests/advanced.test.js
