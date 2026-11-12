@@ -172,3 +172,54 @@ body.showcase-research .heatmap span.filled{background:#91b8eb}
 body.showcase-research .eda-matrix td[style*="background"]{color:#10212f!important}
 body.showcase-research .eda-barcol span{color:#d0dbe1}
 body.showcase-research .chart .bar-item .track{background:#303a43}
+
+/* Research V3: film-first algorithm comparison — real movie ordering, almost no body copy. */
+body.showcase-research #compare>.pane{padding:0!important;border:0!important;background:transparent!important}
+body.showcase-research #compare .pane-head{margin-bottom:18px!important}
+body.showcase-research .research-compare-rows{display:grid;gap:23px;padding-bottom:24px}
+body.showcase-research .research-compare-section{border-top:1px solid #ffffff24;padding:17px 0 1px}
+body.showcase-research .research-compare-section h3{font-size:clamp(19px,1.8vw,25px)!important;letter-spacing:-.045em;margin:0 0 17px;font-weight:750;color:#f3f4f4}
+body.showcase-research .research-compare-rail{display:flex;align-items:flex-start;gap:clamp(11px,1.4vw,19px);overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:none;padding:5px 6px 19px 2px;overscroll-behavior-x:contain}
+body.showcase-research .research-compare-rail::-webkit-scrollbar{display:none}
+body.showcase-research .research-compare-film{flex:0 0 clamp(142px,12vw,200px);width:clamp(142px,12vw,200px);min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:9px;background:none!important;border:0!important;text-align:left;color:#fff;padding:0!important;cursor:pointer;scroll-snap-align:start;overflow:visible}
+body.showcase-research .research-compare-poster{display:grid;place-items:center;position:relative;width:100%;aspect-ratio:2/3;background:linear-gradient(145deg,#36434b,#101418);border:1px solid #ffffff34;border-radius:4px;overflow:hidden;transition:transform .26s ease,border-color .26s ease,box-shadow .26s ease;box-shadow:0 12px 29px #0008}
+body.showcase-research .research-compare-film:hover .research-compare-poster{transform:translateY(-3px) scale(1.025);border-color:#ffffffb0;box-shadow:0 19px 38px #000b}
+body.showcase-research .research-compare-film:focus-visible{outline:2px solid #f0d096;outline-offset:5px}
+body.showcase-research .research-compare-poster img{display:block;width:100%;height:100%;object-fit:cover}
+body.showcase-research .research-compare-fallback{font-size:14px;font-weight:700;line-height:1.45;padding:13px;text-align:center;color:#f1eee9;word-break:keep-all}
+body.showcase-research .research-compare-fallback[hidden],body.showcase-research .research-compare-poster img[hidden]{display:none!important}
+body.showcase-research .research-compare-title{display:block;color:#e4e8ea;font-size:12px;font-weight:650;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+body.showcase-research .research-compare-shared{position:absolute;top:9px;right:9px;font-size:10px;color:#131719;background:#e6e8eb;border-radius:3px;font-weight:700;padding:4px 7px;box-shadow:0 2px 8px #0005}
+body.showcase-research #compare .disclosure-note{margin-top:22px;border:0;border-top:1px solid #ffffff25;border-radius:0;background:none;padding:14px 0}
+
+/* Visualization: full-bleed working canvas; explanation and metadata stay optional. */
+body.showcase-research #visualize .viz-pane{padding:22px clamp(17px,3vw,38px)!important;border:0!important;background:transparent!important;box-shadow:none!important}
+body.showcase-research #visualize .pane-head{margin-bottom:7px}
+body.showcase-research #visualize .viz-pane .pane-head h2{font-size:clamp(25px,3vw,39px)}
+body.showcase-research #visualize .viz-tabs{margin:12px 0 17px;gap:9px}
+body.showcase-research #visualize .viz-tabs button{border-radius:4px;min-height:39px;font-size:12px;padding:10px 17px;font-weight:700}
+body.showcase-research #visualize .viz-toolbar{margin:6px 0 10px;gap:14px}
+body.showcase-research #visualize #vizTitle{display:none}
+body.showcase-research #visualize #vizSubtitle{display:none!important}
+body.showcase-research #visualize .viz-plot{width:min(100%,1150px);max-height:none;min-height:0!important;margin:0 auto;background:#10151a!important;border:1px solid #ffffff19!important;box-shadow:0 18px 55px #0005;border-radius:4px}
+body.showcase-research #visualize #vizPlot svg{width:100%;max-height:620px;height:auto;display:block}
+body.showcase-research #visualize .viz-plot:has(.viz-perf-list){width:min(100%,1150px);background:#14191e!important}
+body.showcase-research #visualize .viz-perf-row{padding:14px 7px;gap:18px}
+body.showcase-research #visualize .viz-legend{width:min(100%,1150px);margin:13px auto 8px;padding:0 5px;font-size:11px}
+body.showcase-research #visualize .viz-message{font-size:11px;margin:4px 0 10px;color:#aeb8bf}
+body.showcase-research #visualize .viz-disclosure{max-width:1150px;margin:12px auto 0}
+body.showcase-research #visualize #vizMetricWrap{font-size:11px}
+body.showcase-research #visualize .viz-metric-wrap select{background:#22282e!important}
+
+/* Algorithm overview: expose ALL 17 advanced algorithms immediately as concise cards. */
+body.showcase-research #guide>.pane{max-width:1370px;margin:0 auto;background:transparent!important;border:0!important;padding:6px 0 32px;box-shadow:none!important}
+body.showcase-research #guide .research-algorithm-group{margin:0 0 37px}
+body.showcase-research #guide .research-algorithm-group>h2{font-size:clamp(23px,2.6vw,33px);margin:6px 0 19px;font-weight:780;letter-spacing:-.045em;color:#f2f2f2}
+body.showcase-research #guide .research-algorithm-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+body.showcase-research #guide .research-algorithm-card{min-width:0;min-height:125px;border:1px solid #ffffff22;background:#151a1e;padding:19px 20px;border-radius:5px;transition:border-color .18s ease,background .18s ease}
+body.showcase-research #guide .research-algorithm-card:hover{border-color:#ffffff5c;background:#1a2227}
+body.showcase-research #guide .research-algorithm-card h3{font-size:clamp(15px,1.35vw,18px);letter-spacing:-.03em;color:#f6f6f6;margin-bottom:9px;font-weight:750;line-height:1.35}
+body.showcase-research #guide .research-algorithm-card p{font-size:12px;line-height:1.65;color:#abb6bd;word-break:keep-all}
+body.showcase-research #guide .footer-source{border-top:1px solid #ffffff25;padding-top:20px;margin-top:16px;color:#949ea6}
+@media(max-width:1000px){body.showcase-research #guide .research-algorithm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){body.showcase-research .research-compare-rows{gap:16px}body.showcase-research .research-compare-rail{gap:11px}body.showcase-research .research-compare-film{flex-basis:132px;width:132px}body.showcase-research #visualize .viz-pane{padding:11px 0!important}body.showcase-research #visualize .viz-tabs{flex-wrap:nowrap;overflow-x:auto}body.showcase-research #visualize .viz-plot{width:100%;border-radius:3px}body.showcase-research #visualize #vizPlot svg{max-height:450px}body.showcase-research #guide .research-algorithm-grid{grid-template-columns:1fr;gap:9px}body.showcase-research #guide .research-algorithm-card{min-height:0;padding:16px 17px}body.showcase-research #guide .research-algorithm-group>h2{margin:8px 0 14px}}
