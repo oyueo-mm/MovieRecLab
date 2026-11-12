@@ -3,9 +3,13 @@ on:
   push:
     branches:
       - feat/showcase-ui-v2
+      - feat/showcase-default-home
   pull_request:
     paths:
       - 'showcase/**'
+      - 'index.html'
+      - 'cinematic/index.html'
+      - 'tests/showcase-default-route.test.js'
       - 'tests/showcase.test.js'
       - '.github/workflows/showcase.yml'
   workflow_dispatch:
@@ -27,7 +31,9 @@ jobs:
       - name: Install DOM test dependency
         run: npm install --no-save --no-package-lock jsdom@26
       - name: Verify showcase ratings, posters, results and research navigation
-        run: node tests/showcase.test.js
+        run: |
+          node tests/showcase.test.js
+          node tests/showcase-default-route.test.js
       - name: Verify existing recommendation algorithms
         run: |
           node tests/advanced.test.js
