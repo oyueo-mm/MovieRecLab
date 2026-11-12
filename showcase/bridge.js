@@ -8,6 +8,7 @@
     ready:()=>Boolean(state.loaded&&state.model?.movies?.length),
     catalog:()=>state.loaded?state.model.movies.map(getMovie):[],
     snapshot:()=>({ready:Boolean(state.loaded),mode:state.mode,language:state.language,rated:[...state.rated.entries()],recommended:!$('recommendWorkspace').hidden,recs:state.recs.map((r,i)=>({rank:i+1,movie:getMovie(r.movie),why:r.why||''})),error:$('loadStatus').classList.contains('error')?$('loadStatus').textContent:''}),
+    comparison:()=>Array.isArray(state.lastCompare)?state.lastCompare.map(set=>({mode:set.mode,recs:set.recs.map((r,i)=>({rank:i+1,movie:getMovie(r.movie),why:r.why||''}))})):[],
     modes:()=>Object.entries(modes).map(([id,name])=>({id,name})),
     presets:()=>window.MovieRecPresets.presets.map(p=>({id:p.id,name:p.name})),
     rate:(movieId,value)=>{const id=Number(movieId),rating=Number(value);if(!state.loaded||!state.model.movieById.has(id)||!Number.isFinite(rating)||rating<.5||rating>5||rating*2%1!==0)throw Error('유효하지 않은 영화 평점입니다.');state.rated.set(id,rating);persist();renderRated();renderSearch(true);window.MovieRecOnboarding?.onLanguageChange();if(!$('recommendWorkspace').hidden)recommendNow();return state.rated.size;},
