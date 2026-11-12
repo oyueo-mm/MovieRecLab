@@ -42,7 +42,7 @@ def score_user_neighbours(mat,usercounts,profile,usage,shrink=3,required=2,neigh
     similarity=overlap/np.sqrt(np.maximum(1,usercounts)*len(positives))
     similarity*=overlap/(overlap+shrink)
     similarity[overlap<required]=0
-    take=np.argpartition(-similarity,-min(neighbors,len(similarity)))[-min(neighbors,len(similarity)):]
+    count=min(neighbors,len(similarity));take=np.argpartition(-similarity,count-1)[:count]
     valid=take[similarity[take]>0]
     if not len(valid):return np.zeros(len(usage),dtype=np.float32)
     return np.asarray(similarity[valid]@mat[valid],dtype=np.float32).reshape(-1)/max(1e-8,float(similarity[valid].sum()))
