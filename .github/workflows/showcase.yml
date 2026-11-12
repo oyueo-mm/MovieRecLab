@@ -15,6 +15,7 @@ on:
       - feat/v10-model-tournament
       - feat/v11-adaptive-cold-start
       - feat/v12-discovery-rails
+      - feat/v13-taste-presets-12
   pull_request:
     paths:
       - 'showcase/**'
@@ -30,6 +31,9 @@ on:
       - 'tests/v11-production.test.js'
       - 'tests/v12-rails.test.js'
       - 'tests/v12-quality-live.js'
+      - 'demo-presets.js'
+      - 'tests/preset-rating.test.js'
+      - 'tests/preset-rails-live.test.js'
       - 'engine.js'
       - 'tests/quality-ab-live.js'
       - 'tests/poster-recovery.test.js'
@@ -90,6 +94,8 @@ jobs:
           node tests/v11-artifact.test.js
           node tests/v11-production.test.js
           node tests/v12-rails.test.js
+          node tests/preset-rating.test.js
+          node tests/preset-rails-live.test.js
       - name: Verify existing recommendation algorithms
         run: |
           node tests/advanced.test.js

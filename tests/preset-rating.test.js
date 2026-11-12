@@ -4,11 +4,11 @@ const root=path.resolve(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p
 for(const p of ['demo-presets.js','onboarding.js','app.js'])new vm.Script(read(p),{filename:p});
 require(path.join(root,'demo-presets.js'));
 const P=globalThis.MovieRecPresets,html=read('index.html'),app=read('app.js'),onboard=read('onboarding.js'),styles=read('styles.css'),onboardStyles=read('onboarding.css');
-assert.equal(P.presets.length,6,'provide six distinct demo preferences');
-assert.equal(new Set(P.presets.map(p=>p.id)).size,6);
+assert.equal(P.presets.length,8,'provide eight distinct demo preferences');
+assert.equal(new Set(P.presets.map(p=>p.id)).size,8);assert.deepEqual(P.presets.map(p=>p.id),['scifi','action','animation','romance','drama','thriller','comedy','horror']);
 const catalog=[...new Set(P.presets.flatMap(p=>p.ratings.map(([name])=>name)))];
 const model={movies:catalog.map((title,i)=>({title,id:i+1}))};
-for(const preset of P.presets){assert.equal(preset.ratings.length,8,preset.id);const sample=P.resolve(preset,model);assert.equal(sample.size,8,'all preset titles must resolve: '+preset.id);assert.ok([...sample.values()].filter(x=>x>=4).length>=4,preset.id+' must have strong positives');assert.ok([...sample.values()].some(x=>x<=2.5),preset.id+' must have negative examples');assert.ok([...sample.values()].every(x=>x>=.5&&x<=5&&(x*2)%1===0));}
+for(const preset of P.presets){assert.equal(preset.ratings.length,12,preset.id);assert.equal(new Set(preset.ratings.map(([name])=>name)).size,12,'no duplicate titles: '+preset.id);const sample=P.resolve(preset,model);assert.equal(sample.size,12,'all preset titles must resolve: '+preset.id);assert.equal([...sample.values()].filter(x=>x>=4).length,7,preset.id+' needs seven strong positives');assert.equal([...sample.values()].filter(x=>x>=3&&x<4).length,2,preset.id+' needs two neutral opinions');assert.equal([...sample.values()].filter(x=>x<3).length,3,preset.id+' needs three dislikes');assert.ok([...sample.values()].some(x=>x<=2.5),preset.id+' must have negative examples');assert.ok([...sample.values()].every(x=>x>=.5&&x<=5&&(x*2)%1===0));}
 assert.equal(P.resolve(P.presets[0],{movies:[]}).size,0);
 assert.match(html,/id="onboardPreset"/);assert.match(html,/class="onboard-preset-strip"/);
 assert.ok(html.indexOf('src="./demo-presets.js"')<html.indexOf('src="./onboarding.js"'),'presets must load before onboarding');
@@ -30,4 +30,4 @@ assert.match(app,/let searchVisible=40/);assert.match(app,/movies\.slice\(0,sear
 assert.match(app,/function loadMoreSearch\(\)/);assert.match(app,/searchVisible\+=40;renderSearch\(true\)/);
 assert.match(app,/searchResults'\)\.addEventListener\('scroll'/);assert.match(app,/data-search-more/);
 assert.match(html,/id="searchResults" tabindex="0" role="region"/);
-console.log('PASS: six MovieLens taste presets, immediate onboarding finish, 0.5-step rating modal, infinite-list pagination, scroll preservation');
+console.log('PASS: eight validated twelve-movie MovieLens taste presets, immediate onboarding finish, 0.5-step rating modal, infinite-list pagination, scroll preservation');
