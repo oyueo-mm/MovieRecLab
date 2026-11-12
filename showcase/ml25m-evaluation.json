@@ -1,0 +1,58 @@
+{
+  "dataset": "MovieLens 25M",
+  "holdout": "user-level, most recent 20%, same candidate pool",
+  "metrics": {
+    "5": {
+      "popular": {
+        "ndcg": 0.034055,
+        "recall": 0.029046,
+        "hit": 0.227848
+      },
+      "genres": {
+        "ndcg": 0.028301,
+        "recall": 0.020528,
+        "hit": 0.126582
+      },
+      "tag": {
+        "ndcg": 0.029027,
+        "recall": 0.028289,
+        "hit": 0.202532
+      },
+      "user": {
+        "ndcg": 0.027459,
+        "recall": 0.014503,
+        "hit": 0.189873
+      }
+    },
+    "10": {
+      "popular": {
+        "ndcg": 0.035402,
+        "recall": 0.029649,
+        "hit": 0.227848
+      },
+      "genres": {
+        "ndcg": 0.027711,
+        "recall": 0.021889,
+        "hit": 0.126582
+      },
+      "tag": {
+        "ndcg": 0.036278,
+        "recall": 0.027707,
+        "hit": 0.177215
+      },
+      "user": {
+        "ndcg": 0.030422,
+        "recall": 0.030262,
+        "hit": 0.227848
+      }
+    }
+  },
+  "counts": {
+    "ratings": 25000095,
+    "users": 162542,
+    "matchedMovies": 9448,
+    "tagGenomeMovies": 8662,
+    "testUsers": 80,
+    "cohorts": 36
+  }
+}
