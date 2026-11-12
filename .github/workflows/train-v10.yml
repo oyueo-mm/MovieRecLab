@@ -5,7 +5,6 @@ on:
       - feat/v10-model-tournament
     paths:
       - 'scripts/benchmark_v10.py'
-      - '.github/workflows/train-v10.yml'
   workflow_dispatch:
 permissions:
   contents: write
@@ -30,6 +29,8 @@ jobs:
           OMP_NUM_THREADS: '2'
           MKL_NUM_THREADS: '2'
         run: python -u scripts/benchmark_v10.py
+      - name: Compact verified item-item coefficients without changing recommendations
+        run: python scripts/pack_v10_model.py
       - name: Validate derived model and statistical report
         run: |
           node --check showcase/v10-model.js
