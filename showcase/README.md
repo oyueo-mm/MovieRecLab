@@ -1,5 +1,18 @@
 # MovieRecLab Showcase V2 — independent, reversible
 
+## V3: streaming-inspired movie browser (2026-11-12)
+
+- Reworked the approved Showcase V2 in place. Film imagery, datasets, original recommendation engine, the independent root redirect and the /cinematic/ experiment are unchanged.
+- Removed the giant selected film number, per-poster index numbers and bottom `13 / 54` and `01 / 10` counters. The film release year is shown as metadata, not repeated in the hero title.
+- Main movie metadata has simple inline genre separators. Recommendation justification remains available in film details rather than permanently covering the artwork.
+- Film ratings, recommendation button and model selection remain accessible; results feature a compact model shortcut that opens the original selector.
+- Vertical mouse wheel **while hovering the poster rail** selects one previous or next film; trackpad deltas are accumulated, with a 400ms guard to reduce accidental skips. Horizontal gestures remain natural. Touch swipe synchronizes selection after horizontal rail scrolling.
+- Larger cinematic backdrops, adjusted contrast, unobtrusive search/menu actions, white high-contrast primary buttons, modest translucent secondary actions and subtler poster borders are inspired by streaming interfaces; this is not a copy of Netflix assets/branding.
+- Existing reduced motion preference, keyboard left/right navigation, rating 0.5 steps, original fallback and research routes stay supported.
+- Backup of approved **official Showcase V2**: branch `backup/showcase-v2-original` at exact commit `f80226a3a3231adf0319c915c99490593fea6336`.
+- To **roll back only this change**, revert its PR with a new commit on main (do not force-push). Restore V2 files/behavior from the backup. The earlier /showcase/ source tree remains available through the backup branch.
+
+
 ## Official landing page (2026-11-12)
 
 The **official root URL** https://oyueo-mm.github.io/MovieRecLab/ now performs a very small same-origin client-side redirect to **/MovieRecLab/showcase/** for top-level visitors.
