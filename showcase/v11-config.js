@@ -1,0 +1,2 @@
+/* V11 non-personal aggregate weights; original ratings not published. */
+window.MovieRecV11Config={"version":"v11-2026","dataset":"MovieLens 25M","profiles":[3,5,10,20,50,100],"bins":{"3":{"gamma":0.25,"negativeScale":0.5,"accepted":true},"5":{"gamma":0.25,"negativeScale":0.5,"accepted":true},"10":{"gamma":0.7,"negativeScale":1.0,"accepted":true},"20":{"gamma":1.0,"negativeScale":1.0,"accepted":false},"50":{"gamma":0.7,"negativeScale":0.5,"accepted":false},"100":{"gamma":0.85,"negativeScale":0.5,"accepted":false}},"study":"validation selection and independent test gate"};
