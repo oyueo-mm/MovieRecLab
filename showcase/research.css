@@ -1,0 +1,16 @@
+/* Loaded only inside the same-origin original app when viewed from /showcase/.
+   It alters the research presentation, not the original algorithms or layout URL. */
+body.showcase-research{background:#f8f8f7!important;color:#1d2426;overflow-x:hidden}
+body.showcase-research .layout{display:block!important;background:#f8f8f7}
+body.showcase-research .sidebar{display:none!important}
+body.showcase-research .content{width:100%;max-width:1460px;margin:auto;padding:28px clamp(16px,4vw,64px) 80px!important}
+body.showcase-research .heading{display:none!important}
+body.showcase-research .tab{min-height:60vh}
+body.showcase-research .pane{border-radius:9px;border-color:#e3e6e8;box-shadow:0 8px 26px #1a1c1f08}
+body.showcase-research .pane h2{letter-spacing:-.035em}
+body.showcase-research .pane-head p.hint{display:none}
+body.showcase-research .eda-top p{display:none}
+body.showcase-research #visualize #vizSubtitle{color:#6b747b}
+body.showcase-research .viz-pane{max-width:1400px}
+body.showcase-research .metric{background:#fff}
+@media(max-width:700px){body.showcase-research .content{padding:16px 13px 60px!important}body.showcase-research .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}body.showcase-research .pane{padding:15px}}
