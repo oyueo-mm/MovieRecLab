@@ -50,12 +50,13 @@
     </nav>
     <div class="settings">
       <label for="modelSelect">추천 모델</label><select id="modelSelect" aria-label="추천 알고리즘"><option value="ease">EASE</option></select>
+      <label class="v9-toggle" for="ml25mOption" title="MovieLens 25M 및 Tag Genome을 학습한 실험 모델입니다. 오프라인 평가에서 기존 추천보다 나을 수 있다는 보장은 없습니다."><span>25M 실험 추천</span><input id="ml25mOption" type="checkbox" aria-label="MovieLens 25M 실험 추천 사용" disabled></label>
       <label for="presetSelect">빠른 평가</label><select id="presetSelect" aria-label="미리 설정된 영화 평점"><option value="">프리셋 선택</option></select>
       <button type="button" id="resetRatings">평가 초기화</button>
       <button type="button" id="motionSetting" aria-pressed="false">애니메이션 줄이기 <span>끔</span></button>
       <a href="../?legacy=1" class="legacy">기존 UI <span>↗</span></a>
       <a href="../cinematic/" class="legacy">이전 시네마틱 UI <span>↗</span></a>
-      <details class="source-credit"><summary>이미지·데이터 출처</summary><p><img src="./assets/tmdb-logo.svg" width="110" height="20" alt="TMDB" style="display:block;max-width:110px;height:auto;margin:10px 0 12px"></p><p>영화 시각 자료: TMDb, Cinemeta 및 해당 이미지 권리자. 포스터가 없는 영화는 일반 대체 화면으로 표시됩니다. MovieLens latest-small 데이터: GroupLens Research. 독립 비상업 시연용 화면입니다.</p><p><a href="https://developer.themoviedb.org/docs/faq" target="_blank" rel="noopener noreferrer">TMDb 이용 안내</a> · <a href="https://files.grouplens.org/datasets/movielens/ml-latest-small-README.html" target="_blank" rel="noopener noreferrer">MovieLens 이용 조건</a></p><p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p></details>
+      <details class="source-credit"><summary>이미지·데이터 출처</summary><p><img src="./assets/tmdb-logo.svg" width="110" height="20" alt="TMDB" style="display:block;max-width:110px;height:auto;margin:10px 0 12px"></p><p>영화 시각 자료: TMDb, Cinemeta 및 해당 이미지 권리자. 포스터가 없는 영화는 일반 대체 화면으로 표시됩니다. 기본 추천 엔진: MovieLens latest-small. 25M 실험 모델: MovieLens 25M 및 Tag Genome으로 오프라인에서 학습한 경량 계수. GroupLens Research 출처, 독립 비상업 연구 시연입니다.</p><p><a href="https://developer.themoviedb.org/docs/faq" target="_blank" rel="noopener noreferrer">TMDb 이용 안내</a> · <a href="https://files.grouplens.org/datasets/movielens/ml-latest-small-README.html" target="_blank" rel="noopener noreferrer">MovieLens 이용 조건</a> · <a href="https://files.grouplens.org/datasets/movielens/ml-25m-README.html" target="_blank" rel="noopener noreferrer">25M 데이터 이용 조건</a></p><p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p></details>
     </div>
   </aside>
   <aside class="search-panel" id="searchPanel" aria-hidden="true" aria-label="영화 검색">
