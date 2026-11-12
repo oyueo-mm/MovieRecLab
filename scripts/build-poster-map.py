@@ -9,7 +9,7 @@ import urllib.request
 
 MOVIELENS = "https://raw.githubusercontent.com/smanihwr/ml-latest-small/ba3cd91761e54faa64483456b619d1a1f4d70971/links.csv"
 METADATA = "https://raw.githubusercontent.com/sachinmasti/movie-data-cleaning/8be8af3197fdfbfeca1c25eee76f3e6c8973c701/movies_metadata.csv"
-POSTER = re.compile(r"^/[A-Za-z0-9_-]{15,100}\\.(?:jpg|jpeg|png|webp)$", re.I)
+POSTER = re.compile(r"^/[A-Za-z0-9_-]{15,100}\.(?:jpg|jpeg|png|webp)$", re.I)
 
 def download(url):
     req = urllib.request.Request(url, headers={"User-Agent": "MovieRecLab-poster-path-builder/1.0"})
