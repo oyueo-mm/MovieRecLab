@@ -28,5 +28,5 @@ const scorer=fs.readFileSync(path.join(dir,'showcase/ml25m-recommender.js'),'utf
 assert.equal(context.window.MovieRec25M.ready(),true);
 const catalog=Array.from(d.films,x=>({id:x[0],n:100,title:'영화 '+x[0]}));
 let profiles=Array.from(d.films.filter(x=>x[2].some(v=>v!==0)).slice(0,10),(x,i)=>[x[0],i%3===0?5:4]);
-for(const mode of ['user','similarity']){const out=context.window.MovieRec25M.recommend(mode,profiles,catalog,12);assert.ok(out?.length>=6,'usable live '+mode);assert.equal(new Set(out.map(x=>x.movie.id)).size,out.length);assert.ok(out.every(x=>!profiles.some(([id])=>id===x.movie.id)));}
+for(const mode of ['user','similarity']){const standard=context.window.MovieRec25M.recommend(mode,profiles,catalog,12);if(d.quality?.[mode]===false)assert.equal(standard,null,'failed holdout gate must retain V8 row');const out=context.window.MovieRec25M.recommend(mode,profiles,catalog,12,{experimental:true});assert.ok(out?.length>=6,'experimental 25M scorer is available for actual films '+mode);assert.equal(new Set(out.map(x=>x.movie.id)).size,out.length);assert.ok(out.every(x=>!profiles.some(([id])=>id===x.movie.id)));}
 console.log('Real 25M pack passed:',JSON.stringify({films:d.films.length,bytes:fs.statSync(modelFile).size,ratings:report.counts.ratings,holdout:report.counts.testUsers,metrics:report.metrics}));
