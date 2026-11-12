@@ -21,7 +21,7 @@
     return movieById.size>=3000&&center.length>=10;
   }
   function recommend(mode,profile,catalog,limit=12){
-    if(!init()||!['user','similarity'].includes(mode)||!Array.isArray(profile)||!Array.isArray(catalog))return null;
+    if(!init()||!['user','similarity'].includes(mode)||source.quality?.[mode]===false||!Array.isArray(profile)||!Array.isArray(catalog))return null;
     const original=new Map(catalog.map(m=>[Number(m.id),m]));
     const rated=new Set(profile.map(x=>Number(x[0])));
     const matched=profile.map(([id,r])=>({item:movieById.get(Number(id)),r:Number(r)})).filter(x=>x.item&&Number.isFinite(x.r));
@@ -62,9 +62,9 @@
       const id=Number(movie.id),entry=movieById.get(id);
       if(!entry||rated.has(id)||movie.n<2)continue;
       const collaborative=dot(entry.collab,cf),tag=noTag?0:dot(entry.semantic,sg);
-      const popularity=Math.log1p(Math.max(0,entry.popular))/10;
+      const popularity=clamp(Number(entry.popular)/1000,0,1);
       const bonus=cohortAffinity.get(id)||0;
-      const value=mode==='user'?.50*collaborative+.50*bonus+.03*popularity:(noTag?collaborative:.57*tag+.43*collaborative)+.065*popularity;
+      const u=source.weights?.user||[.50,.50,.03],t=source.weights?.similarity||[.57,.43,.065];const value=mode==='user'?u[0]*collaborative+u[1]*bonus+u[2]*popularity:(noTag?t[1]*collaborative:t[0]*tag+t[1]*collaborative)+t[2]*popularity;
       if(!Number.isFinite(value))continue;
       scored.push({movie,score:value,why:mode==='user'?'MovieLens 25M에서 학습한 유사 취향 사용자 그룹이 선호한 영화':'Tag Genome 영화 특성과 MovieLens 25M 공동 평가 패턴이 비슷한 영화',method:mode,source:'MovieLens 25M + Tag Genome'});
     }
