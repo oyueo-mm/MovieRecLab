@@ -21,7 +21,8 @@ assert.ok(Buffer.byteLength(file)<10*1024*1024,'no oversized model bundle');
 const context={window:{}};vm.runInNewContext(file,context);
 const data=context.window.MovieRecV10Data;
 assert.equal(data.version,'v10-2026');assert.equal(data.champion,champion);assert.equal(data.quality.similarity,expectedGate);
-if(expectedGate){assert.ok(['itemknn','als','bpr','item2vec','svd'].includes(data.model?.type));assert.equal(data.model.rows.length,results.movieCount);assert.equal(new Set(Array.from(data.model.rows,x=>x[0])).size,results.movieCount);}
+if(expectedGate){assert.ok(['itemknn','als','bpr','item2vec','svd'].includes(data.model?.type));const indexes=data.model.rows?.map(x=>x[0])||data.model.ids;assert.equal(indexes.length,results.movieCount);assert.equal(new Set(indexes).size,results.movieCount);if(data.model.type==='itemknn'){assert.ok(data.model.packed&&data.model.width>=1,'film cooccurrence must use compact lossless representation');const binary=Buffer.from(data.model.packed,'base64');assert.equal(binary.byteLength,indexes.length*data.model.width*4);}}
 else assert.equal(data.model,null,'failed model cannot publish default production weights');
 assert.doesNotMatch(file,/userRatings|rawGenome|ratings\.csv|genome-scores\.csv/,'do not publish raw training interactions');
+const recommender=fs.readFileSync(path.join(root,'showcase/v10-recommender.js'),'utf8');context.window.MovieRec25MData={films:JSON.parse(fs.readFileSync(path.join(root,'showcase/ml25m-evaluation.json'),'utf8')).counts?.matchedMovies>1000?[]:[]};context.window.atob=value=>Buffer.from(value,'base64').toString('binary');vm.runInNewContext(recommender,context);assert.equal(context.window.MovieRecV10.ready(),Boolean(expectedGate),'only proven film model should become available');
 console.log('V10 true offline 25M benchmark, 12 baseline and candidate models, user-level holdout, release gates, and derived data limits verified:',JSON.stringify(results.selection));
