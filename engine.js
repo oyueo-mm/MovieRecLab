@@ -71,6 +71,15 @@ function userResultsV2(model,profile,limit=10,settings={}){
  output.sort((x,y)=>y.score-x.score||y.movie.n-x.movie.n);
  return fillWithPopularity(model,profile,output,limit);
 }
-function recommend(model,profileEntries,mode='hybrid',limit=10,settings={}){const profile=normalizeProfile(profileEntries,model);switch(mode){case'popular':return popResults(model,profile,limit);case'content':return settings.useLegacy?contentResults(model,profile,limit):contentResultsV2(model,profile,limit,settings);case'user':return settings.useLegacy?userResults(model,profile,limit,settings):userResultsV2(model,profile,limit,settings);case'item':return itemResults(model,profile,limit);case'hybrid':return hybridResults(model,profile,limit,settings);case'hybrid-previous':return legacyHybridResults(model,profile,limit,settings);default:throw Error('알 수 없는 알고리즘: '+mode);}}
+
+/* Content and item-item collaborative similarity describe different aspects of "movies like what you liked". */
+function similarityResults(model,profile,limit=10,settings={}){
+ if(!profile.size)return popResults(model,profile,limit);
+ const count=Math.max(limit,Math.min(80,settings.similarityCandidates||60)),k=settings.similarityK??10,contentWeight=settings.similarityContentWeight??1,itemWeight=settings.similarityItemWeight??1;
+ const content=contentResults(model,profile,count).filter(x=>x.method==='content'),item=itemResults(model,profile,count).filter(x=>x.method==='item'),scores=new Map();
+ for(const [type,list,weight] of [['content',content,contentWeight],['item',item,itemWeight]])list.forEach((rec,rank)=>{const id=rec.movie.id;let data=scores.get(id);if(!data){data={movie:rec.movie,score:0,types:new Set(),content:0,item:0};scores.set(id,data);}const value=weight/(k+rank+1);data.score+=value;data[type]+=value;data.types.add(type);});
+ return [...scores.values()].sort((a,b)=>b.score-a.score||b.movie.n-a.movie.n).slice(0,limit).map(x=>({movie:x.movie,score:x.score,method:'similarity',why:x.types.size>1?'장르·태그와 공동 평가 패턴 모두에서 유사':x.types.has('item')?'다른 사용자가 함께 비슷하게 평가한 영화':'평가한 영화의 장르·태그와 유사',factors:[['콘텐츠 유사도 기여',x.content/(x.score||1)],['공동 평가 유사도 기여',x.item/(x.score||1)]]}));
+}
+function recommend(model,profileEntries,mode='hybrid',limit=10,settings={}){const profile=normalizeProfile(profileEntries,model);switch(mode){case'popular':return popResults(model,profile,limit);case'content':return settings.useContentV2?contentResultsV2(model,profile,limit,settings):contentResults(model,profile,limit);case'similarity':return similarityResults(model,profile,limit,settings);case'user':return settings.useLegacy?userResults(model,profile,limit,settings):userResultsV2(model,profile,limit,settings);case'item':return itemResults(model,profile,limit);case'hybrid':return hybridResults(model,profile,limit,settings);case'hybrid-previous':return legacyHybridResults(model,profile,limit,settings);default:throw Error('알 수 없는 알고리즘: '+mode);}}
 root.MovieRecEngine={csv,parseFiles,createModel,normalizeProfile,recommend,genreSimilarity};if(typeof module!=='undefined'&&module.exports)module.exports=root.MovieRecEngine;
 })(typeof self!=='undefined'?self:globalThis);
