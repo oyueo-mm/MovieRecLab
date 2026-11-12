@@ -1,5 +1,23 @@
 # MovieRecLab Showcase V2 — independent, reversible
 
+## Rating and Research V4 (2026-11-12)
+
+- Background flash fixed: artwork changes only when the selected movie ID changes. Rating and state synchronization no longer restart the same backdrop animation.
+- A rated film displays a clearly labeled 평가 취소 button; clicking the identical selected rating again also removes it. The action uses the existing bridge.unrate() and keeps the minimum-three rating gate correct.
+- Model comparison now renders one horizontal poster row per model instead of five-column text cards. Rankings follow the real computed algorithm order, left to right. Shared films have a small marker and each poster opens existing movie details.
+- Visualization has a wider dark plot and compact tabs, with chart explanations kept accessible in disclosure. Chart axes, points, metrics and source data are unchanged.
+- The algorithm guide displays all 17 advanced models immediately as concise information cards using the actual MovieRecAdvanced.descriptions source, plus all basic algorithms. None require expanding the old advanced model accordion.
+- Original app engine, datasets, normal legacy entry and original cinematic experiment are unchanged; modifications are scoped to showcase and related regression tests.
+
+### Rollback
+
+Restore the exact pre-change tree from commit 24341499542b3cb7c19a2e25b1925a39f0c62cad, preserved on branch backup/pre-rating-and-research-fix-2026-11-12. Revert the dedicated V4 PR as a new commit on main. No force-push.
+
+### Tests
+
+Showcase DOM tests cover rating cancellation and background stability; the research test checks real poster IDs, rank order, accessible film detail actions, evaluation disclosures and 17 immediately visible advanced models. All earlier recommendation and visualization regressions still run.
+
+
 ## Research Studio redesign (2026-11-12)
 
 - Comparison, data analysis (EDA), taste/network/performance visualization, offline evaluation, and algorithm explanations use the same **dark, minimal, cinematic visual language** as the Showcase hero. A compact horizontal tab strip sits under the research header, enabling navigation without reopening the side menu.
