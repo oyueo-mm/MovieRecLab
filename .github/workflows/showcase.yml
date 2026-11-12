@@ -6,6 +6,7 @@ on:
       - feat/showcase-default-home
       - feat/showcase-netflix-ui
       - feat/showcase-research-redesign
+      - feat/rating-and-research-polish
   pull_request:
     paths:
       - 'showcase/**'
