@@ -17,7 +17,10 @@ const choices=[
  {name:'user-v2',mode:'user',options:{}},
  {name:'user-pop',mode:'user',options:{userPopularityWeight:.75,userShrink:.5,userOverlapShrink:4,userSupportWeight:.05}},
  {name:'user-neighbors',mode:'user',options:{userPopularityWeight:.35,userShrink:.3,userOverlapShrink:2,userSupportWeight:.08}},
- {name:'user-stable',mode:'user',options:{userPopularityWeight:.60,userShrink:1.1,userOverlapShrink:6,userSupportWeight:.02}}
+ {name:'user-stable',mode:'user',options:{userPopularityWeight:.60,userShrink:1.1,userOverlapShrink:6,userSupportWeight:.02}},
+ {name:'user-blend50',mode:'user',options:{useUserBlend:true,userBlendLegacyWeight:.50}},
+ {name:'user-blend75',mode:'user',options:{useUserBlend:true,userBlendLegacyWeight:.75}},
+ {name:'user-blend25',mode:'user',options:{useUserBlend:true,userBlendLegacyWeight:.25}}
 ];
 function statistics(){return {ndcg:0,recall:0,hit:0,people:0,coverage:new Set()};}
 function evaluate(model,people,profiles){const aggregates=Object.fromEntries(choices.map(c=>[c.name,statistics()]));let valid=0;for(const [uid,history] of people){const sorted=history.slice().sort((a,b)=>a[3]-b[3]||a[1]-b[1]);const nTest=Math.max(3,Math.floor(sorted.length*.2)),initial=sorted.slice(0,-nTest).slice(0,profiles).map(r=>[r[1],r[2]]),truth=new Set(sorted.slice(-nTest).filter(r=>r[2]>=4&&model.movieById.get(r[1])?.n>=2).map(r=>r[1]));if(!truth.size||initial.length<profiles)continue;valid++;const ideal=Array.from({length:Math.min(10,truth.size)},(_,i)=>1/Math.log2(i+2)).reduce((a,b)=>a+b,0);for(const c of choices){const items=E.recommend(model,initial,c.mode,10,{...c.options,excludeUser:uid});const a=aggregates[c.name];let h=0,dcg=0;items.forEach((item,i)=>{a.coverage.add(item.movie.id);if(truth.has(item.movie.id)){h++;dcg+=1/Math.log2(i+2);}});a.ndcg+=dcg/ideal;a.recall+=h/truth.size;a.hit+=+(h>0);a.people++;}}const r=Object.fromEntries(Object.entries(aggregates).map(([name,a])=>[name,{ndcg:Number((a.ndcg/a.people).toFixed(5)),recall:Number((a.recall/a.people).toFixed(5)),hit:Number((a.hit/a.people).toFixed(5)),coverage:a.coverage.size,users:a.people}]));return {valid,results:r};}
