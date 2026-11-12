@@ -14,6 +14,7 @@ on:
       - feat/ml25m-tag-genome-v9
       - feat/v10-model-tournament
       - feat/v11-adaptive-cold-start
+      - feat/v12-discovery-rails
   pull_request:
     paths:
       - 'showcase/**'
@@ -27,6 +28,8 @@ on:
       - 'tests/v11-inference.test.js'
       - 'tests/v11-artifact.test.js'
       - 'tests/v11-production.test.js'
+      - 'tests/v12-rails.test.js'
+      - 'tests/v12-quality-live.js'
       - 'engine.js'
       - 'tests/quality-ab-live.js'
       - 'tests/poster-recovery.test.js'
@@ -66,6 +69,7 @@ jobs:
           node --check showcase/v10-model.js
           node --check showcase/v11-recommender.js
           node --check showcase/v11-config.js
+          node --check showcase/v12-rails.js
           node --check engine.js
       - name: Install DOM test dependency
         run: npm install --no-save --no-package-lock jsdom@26
@@ -85,6 +89,7 @@ jobs:
           node tests/v11-inference.test.js
           node tests/v11-artifact.test.js
           node tests/v11-production.test.js
+          node tests/v12-rails.test.js
       - name: Verify existing recommendation algorithms
         run: |
           node tests/advanced.test.js
@@ -97,4 +102,6 @@ jobs:
         run: node tests/ui-dom-integration.test.js
 
       - name: Measure real MovieLens User KNN / Content recommendation quality
-        run: node tests/quality-ab-live.js
+        run: |
+          node tests/quality-ab-live.js
+          node tests/v12-quality-live.js
