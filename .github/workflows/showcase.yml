@@ -15,6 +15,7 @@ on:
       - 'engine.js'
       - 'tests/quality-ab-live.js'
       - 'tests/poster-recovery.test.js'
+      - 'tests/recommend-upgrades.test.js'
       - 'index.html'
       - 'cinematic/index.html'
       - 'tests/showcase-default-route.test.js'
@@ -57,6 +58,7 @@ jobs:
           node tests/preset-rating.test.js
           node tests/visualization.test.js
           node tests/i18n.test.js
+          node tests/recommend-upgrades.test.js
       - name: Verify original UI DOM functionality
         run: node tests/ui-dom-integration.test.js
 
