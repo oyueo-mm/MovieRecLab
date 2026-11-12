@@ -1,0 +1,34 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const js=fs.readFileSync(path.join(__dirname,'..','showcase','ml25m-recommender.js'),'utf8');
+const html=fs.readFileSync(path.join(__dirname,'..','showcase','index.html'),'utf8');
+const app=fs.readFileSync(path.join(__dirname,'..','showcase','showcase.js'),'utf8');
+new vm.Script(js);
+assert.ok(html.includes('ml25m-model.js?v=9'));
+assert.ok(html.includes('ml25m-recommender.js?v=9'));
+assert.ok(html.indexOf('ml25m-model.js')<html.indexOf('ml25m-recommender.js'),'model must load before scorer');
+assert.ok(html.indexOf('ml25m-recommender.js')<html.indexOf('showcase.js'),'scorer must load before rendering');
+assert.match(app,/25M 유사 취향 사용자 그룹/);
+assert.match(app,/25M Tag Genome \+ 협업 필터링/);
+assert.match(app,/userRows\|\|baseUser\?\.recs/,'old User KNN remains independent fallback');
+assert.match(app,/semanticRows\|\|baseContent\?\.recs/,'old content-item row remains independent fallback');
+const films=Array.from({length:3100},(_,i)=>[i+1,[100+i%19,...Array(23).fill(2)],[(i%37)*3+2,...Array(23).fill(1)],10+(i%12)]);
+const data={version:'25m-2026-v9',dims:24,films,centers:Array.from({length:36},(_,i)=>[100-i,...Array(23).fill(i%5)]),cohorts:Array.from({length:36},(_,i)=>Array.from({length:20},(_,j)=>[i*20+j+30,2500-j*20])),evaluation:{"5":{user:{ndcg:.06},tag:{ndcg:.07}}}};
+const context={window:{MovieRec25MData:data},console},sandbox=vm.createContext(context);new vm.Script(js).runInContext(sandbox);
+const api=sandbox.window.MovieRec25M,people=films.slice(0,100).map(entry=>({id:entry[0],title:'영화 '+entry[0],n:200})),catalog=films.map(entry=>({id:entry[0],title:'영화 '+entry[0],n:100}));
+assert.equal(api.ready(),true);
+assert.equal(api.info().films,3100);
+const profile=[[1,5],[2,4.5],[3,1],[4,4],[5,2.5]];
+for(const kind of ['user','similarity']){
+  const result=api.recommend(kind,profile,catalog,12);
+  assert.equal(result.length,12);
+  assert.equal(new Set(result.map(x=>x.movie.id)).size,12);
+  assert.ok(result.every(x=>!profile.some(([id])=>id===x.movie.id)),'rated films cannot be returned');
+  assert.ok(result.every(x=>x.method===kind),'model provenance must match row');
+  assert.ok(result.every(x=>Number.isFinite(x.score)),'all scores must be finite');
+  assert.deepEqual(result.map(x=>x.movie.id),api.recommend(kind,profile,catalog,12).map(x=>x.movie.id),'ranking must be stable');
+}
+assert.equal(api.recommend('user',[[1,5]],catalog,12),null,'insufficient evidence must use original fallback');
+assert.equal(api.recommend('unknown',profile,catalog,12),null,'unknown mode is disabled');
+vm.runInNewContext(js,{window:{MovieRec25MData:null},console});
+console.log('25M inferred recommendation rows, original fallback, synthetic dense model scoring, profile controls and source tagging passed.');

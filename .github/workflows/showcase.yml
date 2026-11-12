@@ -11,9 +11,13 @@ on:
       - feat/poster-recommend-v6
       - feat/poster-coverage-v7
       - fix/poster-loading-v8
+      - feat/ml25m-tag-genome-v9
   pull_request:
     paths:
       - 'showcase/**'
+      - 'scripts/train_ml25m.py'
+      - 'tests/ml25m-inference.test.js'
+      - 'tests/ml25m-artifact.test.js'
       - 'engine.js'
       - 'tests/quality-ab-live.js'
       - 'tests/poster-recovery.test.js'
@@ -47,6 +51,8 @@ jobs:
           node --check showcase/showcase.js
           node --check showcase/research-studio.js
           node --check showcase/recommend-rails.js
+          node --check showcase/ml25m-recommender.js
+          node --check showcase/ml25m-model.js
           node --check engine.js
       - name: Install DOM test dependency
         run: npm install --no-save --no-package-lock jsdom@26
@@ -59,6 +65,8 @@ jobs:
           node tests/poster-recovery.test.js
           node tests/poster-map.test.js
           node tests/poster-lazy-render.test.js
+          node tests/ml25m-inference.test.js
+          node tests/ml25m-artifact.test.js
       - name: Verify existing recommendation algorithms
         run: |
           node tests/advanced.test.js

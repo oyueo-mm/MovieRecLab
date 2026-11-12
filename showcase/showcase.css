@@ -139,3 +139,7 @@
 .showcase .search-item{position:relative}
 .showcase .search-item .search-fallback{position:absolute;left:0;top:50%;transform:translateY(-50%);z-index:1}
 .showcase .search-item .search-fallback[hidden]{display:none!important}
+
+/* V9: preserve uncluttered cinematic UI; optional model source is chosen inside the menu. */
+.showcase #ml25mMode{font-weight:600;font-size:12px;min-height:40px;max-width:100%;color:#eef1f1}
+.showcase #ml25mMode:disabled{opacity:.45}

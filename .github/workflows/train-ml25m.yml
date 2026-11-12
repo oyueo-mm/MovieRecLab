@@ -1,0 +1,49 @@
+name: Train MovieLens 25M and Tag Genome V9 (derived model only)
+on:
+  push:
+    branches:
+      - feat/ml25m-tag-genome-v9
+    paths:
+      - 'scripts/train_ml25m.py'
+      - '.github/workflows/train-ml25m.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/ml25m-tag-genome-v9
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify training source
+        run: python -m py_compile scripts/train_ml25m.py
+      - name: Install numeric training dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.2.6 scipy==1.15.3 scikit-learn==1.6.1
+      - name: Download 25M and train latent model in transient runner
+        env:
+          OPENBLAS_NUM_THREADS: '2'
+          OMP_NUM_THREADS: '2'
+          MKL_NUM_THREADS: '2'
+        run: python -u scripts/train_ml25m.py
+      - name: Check model payload and performance report
+        run: |
+          node --check showcase/ml25m-model.js
+          python -c "import json; d=json.load(open('showcase/ml25m-evaluation.json')); assert d['counts']['ratings']>24000000; assert d['counts']['matchedMovies']>8000; assert d['counts']['tagGenomeMovies']>6500; print(d['metrics'])"
+      - name: Commit derived latent coefficients only
+        run: |
+          git add showcase/ml25m-model.js showcase/ml25m-evaluation.json
+          if git diff --cached --quiet; then echo "V9 model unchanged"; exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "build(v9): add offline-trained, compact MovieLens 25M semantic model [skip ci]"
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin feat/ml25m-tag-genome-v9
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" rebase origin/feat/ml25m-tag-genome-v9
+            if git push origin HEAD:feat/ml25m-tag-genome-v9; then exit 0; fi
+            sleep 2
+          done
+          echo "Unable to publish V9 derived model without force push" >&2
+          exit 1
