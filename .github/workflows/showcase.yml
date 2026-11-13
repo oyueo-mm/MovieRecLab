@@ -17,6 +17,7 @@ on:
       - feat/v12-discovery-rails
       - feat/v13-taste-presets-12
       - feat/v14-rated-library-cinematic-detail
+      - feat/v15-korean-plot-autohero
   pull_request:
     paths:
       - 'showcase/**'
@@ -32,6 +33,7 @@ on:
       - 'tests/v11-production.test.js'
       - 'tests/v12-rails.test.js'
       - 'tests/v14-showcase.test.js'
+      - 'tests/v15-synopsis-autoplay.test.js'
       - 'tests/v12-quality-live.js'
       - 'demo-presets.js'
       - 'tests/preset-rating.test.js'
@@ -67,6 +69,7 @@ jobs:
           node --check showcase/art.js
           node --check showcase/poster-map.js
           node --check showcase/showcase.js
+          node --check showcase/synopsis.js
           node --check showcase/research-studio.js
           node --check showcase/recommend-rails.js
           node --check showcase/ml25m-recommender.js
@@ -83,6 +86,7 @@ jobs:
         run: |
           node tests/showcase.test.js
           node tests/v14-showcase.test.js
+          node tests/v15-synopsis-autoplay.test.js
           node tests/showcase-research.test.js
           node tests/showcase-multirail.test.js
           node tests/showcase-default-route.test.js
