@@ -8,7 +8,7 @@
 <title>영화 추천</title>
 <link rel="preconnect" href="https://image.tmdb.org">
 <link rel="preconnect" href="https://images.metahub.space">
-<link rel="stylesheet" href="./showcase.css?v=10">
+<link rel="stylesheet" href="./showcase.css?v=14">
 </head>
 <body>
 <main class="showcase" id="showcase" data-view="rating" aria-label="영화 쇼케이스">
@@ -46,7 +46,7 @@
   <aside id="menuPanel" class="side-panel" aria-hidden="true" aria-label="메뉴">
     <div class="panel-top"><button id="menuClose" class="panel-close" aria-label="메뉴 닫기" type="button">×</button></div>
     <nav class="panel-nav" aria-label="화면 이동">
-      <button type="button" data-route="rating">영화 평가</button><button type="button" data-route="results">추천 결과</button><button type="button" data-route="compare">알고리즘 비교</button><button type="button" data-route="analysis">데이터 분석</button><button type="button" data-route="visualize">추천 시각화</button><button type="button" data-route="evaluate">성능 평가</button><button type="button" data-route="guide">알고리즘 설명</button>
+      <button type="button" data-route="rating">영화 평가</button><button type="button" data-route="results">추천 결과</button><button type="button" data-route="rated">내 평가</button><button type="button" data-route="compare">알고리즘 비교</button><button type="button" data-route="analysis">데이터 분석</button><button type="button" data-route="visualize">추천 시각화</button><button type="button" data-route="evaluate">성능 평가</button><button type="button" data-route="guide">알고리즘 설명</button>
     </nav>
     <div class="settings">
       <label for="modelSelect">추천 모델</label><select id="modelSelect" aria-label="추천 알고리즘"><option value="ease">EASE</option></select>
@@ -63,14 +63,14 @@
     <div class="search-head"><input id="searchInput" type="search" placeholder="영화 검색" aria-label="영화 제목 검색" autocomplete="off"><button id="searchClose" class="panel-close" type="button" aria-label="검색 닫기">×</button></div>
     <div id="searchResults" class="search-results" role="listbox" aria-label="영화 검색 결과"></div>
   </aside>
-  <aside class="detail-panel" id="detailPanel" aria-hidden="true" aria-label="영화 상세 정보"><button id="detailClose" class="panel-close" type="button" aria-label="영화 상세 닫기">×</button><h2 id="detailTitle"></h2><div id="detailBody"></div><button id="featureFilm" class="detail-feature" type="button" hidden>크게 보기 <span aria-hidden="true">↗</span></button></aside>
+  <section class="detail-panel" id="detailPanel" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="detailTitle" tabindex="-1"><button id="detailClose" class="panel-close" type="button" aria-label="영화 상세 닫기">×</button><div class="detail-hero" id="detailHero"><img id="detailHeroPoster" class="detail-hero-poster" alt="" hidden><div class="detail-hero-text"><h2 id="detailTitle"></h2><p id="detailOriginal" class="detail-original"></p><p id="detailMeta" class="detail-meta"></p></div></div><div id="detailBody" class="detail-content"></div><button id="featureFilm" type="button" hidden tabindex="-1" aria-hidden="true">크게 보기</button></section><section class="rated-screen" id="ratedScreen" aria-label="내 평가" hidden><header class="rated-head"><button type="button" id="ratedClose" aria-label="이전 화면으로">←</button><div class="rated-heading"><h2>내 평가</h2><span id="ratedCount">0편</span></div><label class="rated-sort-wrap"><span class="sr-only">평가 정렬</span><select id="ratedSort" aria-label="평가 정렬"><option value="recent">최근 평가순</option><option value="high">높은 평점순</option><option value="low">낮은 평점순</option><option value="title">제목순</option></select></label><button type="button" id="ratedMenu" aria-label="메뉴 열기">☰</button></header><div id="ratedGrid" class="rated-grid" role="list"></div><p id="ratedEmpty" class="rated-empty" hidden>아직 평가한 영화가 없습니다. 영화 평가 화면에서 별점을 남겨보세요.</p></section>
   <section class="research-screen" id="researchScreen" aria-label="추천 실험실" hidden><div class="research-bar"><button id="researchClose" type="button" aria-label="쇼케이스로 복귀">←</button><span id="researchTitle">분석</span><button id="researchMenu" type="button" aria-label="분석 메뉴">☰</button></div><nav id="researchTabs" class="research-tabs" aria-label="분석 화면 탐색"><button type="button" data-research-tab="compare" aria-current="false">알고리즘 비교</button><button type="button" data-research-tab="analysis" aria-current="false">데이터 분석</button><button type="button" data-research-tab="visualize" aria-current="false">추천 시각화</button><button type="button" data-research-tab="evaluate" aria-current="false">성능 평가</button><button type="button" data-research-tab="guide" aria-current="false">알고리즘 설명</button></nav></section>
   <div class="loading" id="loading" role="status" aria-live="polite"><div class="load-line"></div><span id="loadingText">영화 데이터를 불러오는 중...</span></div>
   <div class="toast" id="toast" aria-live="polite" role="status" hidden></div>
   <iframe id="coreFrame" title="기존 MovieRecLab 추천 엔진" src="../index.html" loading="eager" tabindex="-1"></iframe>
 </main>
 <script src="./poster-map.js?v=7"></script>
-<script src="./art.js?v=8"></script>
+<script src="./art.js?v=14"></script>
 <script src="./research-studio.js"></script>
 <script src="./ml25m-model.js?v=9"></script>
 <script src="./ml25m-recommender.js?v=9"></script>
@@ -80,5 +80,5 @@
 <script src="./v11-recommender.js?v=11"></script>
 <script src="./v12-rails.js?v=12"></script>
 <script src="./recommend-rails.js?v=8"></script>
-<script src="./showcase.js?v=12"></script>
+<script src="./showcase.js?v=14"></script>
 </body></html>
