@@ -87,6 +87,7 @@ jobs:
           node tests/showcase.test.js
           node tests/v14-showcase.test.js
           node tests/v15-synopsis-autoplay.test.js
+          node tests/v15-source-probe.js
           node tests/showcase-research.test.js
           node tests/showcase-multirail.test.js
           node tests/showcase-default-route.test.js
