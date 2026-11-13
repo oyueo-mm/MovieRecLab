@@ -18,6 +18,7 @@ on:
       - feat/v13-taste-presets-12
       - feat/v14-rated-library-cinematic-detail
       - feat/v15-korean-plot-autohero
+      - fix/v15-korean-plot-coverage
   pull_request:
     paths:
       - 'showcase/**'
@@ -63,6 +64,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Diagnose public Korean synopsis providers
+        run: node tests/v15-korean-provider-probe.js
       - name: Check isolated showcase scripts
         run: |
           node --check showcase/bridge.js
