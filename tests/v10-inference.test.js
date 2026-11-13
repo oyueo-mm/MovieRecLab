@@ -4,7 +4,7 @@ const dir=path.join(__dirname,'..'),code=fs.readFileSync(path.join(dir,'showcase
 new vm.Script(code);new vm.Script(controller);
 assert.ok(markup.includes('v10-model.js?v=10')&&markup.includes('v10-recommender.js?v=10'));
 assert.ok(markup.indexOf('ml25m-model.js')<markup.indexOf('v10-recommender.js'));
-assert.ok(markup.indexOf('v10-recommender.js')<markup.indexOf('showcase.js?v=14'));
+assert.ok(markup.indexOf('v10-recommender.js')<markup.indexOf('showcase.js?v=15'));
 for(const option of ['auto','v9','v8','experimental','v10'])assert.ok(markup.includes('option value="'+option+'"'));
 assert.match(controller,/championRows=v10\.recommend\('similarity'/);
 assert.match(controller,/if\(championRows\)semanticRows=championRows/);
