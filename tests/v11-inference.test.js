@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const root=path.join(__dirname,'..'),text=fs.readFileSync(path.join(root,'showcase/v11-recommender.js'),'utf8'),html=fs.readFileSync(path.join(root,'showcase/index.html'),'utf8'),controller=fs.readFileSync(path.join(root,'showcase/showcase.js'),'utf8');
 new vm.Script(text);new vm.Script(controller);
 assert.match(html,/src="\.\/v11-config\.js\?v=11"/);assert.match(html,/src="\.\/v11-recommender\.js\?v=11"/);
-assert.ok(html.indexOf('v10-recommender.js')<html.indexOf('v11-config.js')&&html.indexOf('v11-recommender.js')<html.indexOf('showcase.js?v=15'));
+assert.ok(html.indexOf('v10-recommender.js')<html.indexOf('v11-config.js')&&html.indexOf('v11-recommender.js')<html.indexOf('showcase.js?v=151'));
 assert.match(controller,/adaptiveRows=v11\.recommend\('similarity'/);
 assert.match(controller,/if\(adaptiveRows\)semanticRows=adaptiveRows/);
 assert.match(controller,/v11option\.disabled/);
