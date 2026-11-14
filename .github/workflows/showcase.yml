@@ -21,6 +21,7 @@ on:
       - fix/v15-korean-plot-coverage
       - feat/v16-all-films-rating-gallery
       - fix/v16-gallery-posters-header
+      - feat/v17-drag-stars
   pull_request:
     paths:
       - 'showcase/**'
@@ -40,6 +41,7 @@ on:
       - 'tests/v15-korean-provider.test.js'
       - 'tests/v16-all-films.test.js'
       - 'tests/v16-gallery-hotfix.test.js'
+      - 'tests/v17-rating-drag.test.js'
       - 'tests/v12-quality-live.js'
       - 'demo-presets.js'
       - 'tests/preset-rating.test.js'
@@ -75,6 +77,7 @@ jobs:
           node --check showcase/art.js
           node --check showcase/poster-map.js
           node --check showcase/showcase.js
+          node --check showcase/rating-drag.js
           node --check showcase/all-films.js
           node --check showcase/synopsis.js
           node --check showcase/research-studio.js
@@ -95,6 +98,7 @@ jobs:
           node tests/v14-showcase.test.js
           node tests/v16-all-films.test.js
           node tests/v16-gallery-hotfix.test.js
+          node tests/v17-rating-drag.test.js
           node tests/v15-synopsis-autoplay.test.js
           node tests/v15-korean-provider.test.js
           node tests/v15-source-probe.js
