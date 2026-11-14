@@ -20,6 +20,7 @@ on:
       - feat/v15-korean-plot-autohero
       - fix/v15-korean-plot-coverage
       - feat/v16-all-films-rating-gallery
+      - fix/v16-gallery-posters-header
   pull_request:
     paths:
       - 'showcase/**'
@@ -38,6 +39,7 @@ on:
       - 'tests/v15-synopsis-autoplay.test.js'
       - 'tests/v15-korean-provider.test.js'
       - 'tests/v16-all-films.test.js'
+      - 'tests/v16-gallery-hotfix.test.js'
       - 'tests/v12-quality-live.js'
       - 'demo-presets.js'
       - 'tests/preset-rating.test.js'
@@ -92,6 +94,7 @@ jobs:
           node tests/showcase.test.js
           node tests/v14-showcase.test.js
           node tests/v16-all-films.test.js
+          node tests/v16-gallery-hotfix.test.js
           node tests/v15-synopsis-autoplay.test.js
           node tests/v15-korean-provider.test.js
           node tests/v15-source-probe.js
