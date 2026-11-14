@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://image.tmdb.org">
 <link rel="preconnect" href="https://images.metahub.space">
 <link rel="stylesheet" href="./showcase.css?v=15">
+<link rel="stylesheet" href="./all-films.css?v=16">
 </head>
 <body>
 <main class="showcase" id="showcase" data-view="rating" aria-label="영화 쇼케이스">
@@ -37,7 +38,7 @@
     </div>
   </section>
   <section class="poster-zone" aria-label="영화 포스터 목록">
-    <div class="poster-controls"><button id="prev" class="arrow-btn" type="button" aria-label="이전 영화"><span>←</span></button><button id="next" class="arrow-btn" type="button" aria-label="다음 영화"><span>→</span></button></div>
+    <div class="poster-controls"><span id="posterPosition" class="poster-position" aria-live="off">1 / 150</span><button id="allFilmsOpen" class="poster-all-open" type="button" disabled>전체 보기 ↗</button><button id="prev" class="arrow-btn" type="button" aria-label="이전 영화"><span>←</span></button><button id="next" class="arrow-btn" type="button" aria-label="다음 영화"><span>→</span></button></div>
     <div id="posterRail" class="poster-rail" role="list" tabindex="0" aria-label="영화 선택"></div>
   </section>
   <section id="recommendRows" class="recommend-rows" aria-label="추천 방식별 영화 모음" hidden><div class="recommend-rows-inner" id="recommendRowsInner"></div></section>
@@ -64,7 +65,7 @@
     <div id="searchResults" class="search-results" role="listbox" aria-label="영화 검색 결과"></div>
   </aside>
   <section class="detail-panel" id="detailPanel" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="detailTitle" tabindex="-1"><button id="detailClose" class="panel-close" type="button" aria-label="영화 상세 닫기">×</button><div class="detail-hero" id="detailHero"><img id="detailHeroPoster" class="detail-hero-poster" alt="" hidden><div class="detail-hero-text"><h2 id="detailTitle"></h2><p id="detailOriginal" class="detail-original"></p><p id="detailMeta" class="detail-meta"></p></div></div><div id="detailBody" class="detail-content"></div><button id="featureFilm" type="button" hidden tabindex="-1" aria-hidden="true">크게 보기</button></section><section class="rated-screen" id="ratedScreen" aria-label="내 평가" hidden><header class="rated-head"><button type="button" id="ratedClose" aria-label="이전 화면으로">←</button><div class="rated-heading"><h2>내 평가</h2><span id="ratedCount">0편</span></div><label class="rated-sort-wrap"><span class="sr-only">평가 정렬</span><select id="ratedSort" aria-label="평가 정렬"><option value="recent">최근 평가순</option><option value="high">높은 평점순</option><option value="low">낮은 평점순</option><option value="title">제목순</option></select></label><button type="button" id="ratedMenu" aria-label="메뉴 열기">☰</button></header><div id="ratedGrid" class="rated-grid" role="list"></div><p id="ratedEmpty" class="rated-empty" hidden>아직 평가한 영화가 없습니다. 영화 평가 화면에서 별점을 남겨보세요.</p></section>
-  <section class="research-screen" id="researchScreen" aria-label="추천 실험실" hidden><div class="research-bar"><button id="researchClose" type="button" aria-label="쇼케이스로 복귀">←</button><span id="researchTitle">분석</span><button id="researchMenu" type="button" aria-label="분석 메뉴">☰</button></div><nav id="researchTabs" class="research-tabs" aria-label="분석 화면 탐색"><button type="button" data-research-tab="compare" aria-current="false">알고리즘 비교</button><button type="button" data-research-tab="analysis" aria-current="false">데이터 분석</button><button type="button" data-research-tab="visualize" aria-current="false">추천 시각화</button><button type="button" data-research-tab="evaluate" aria-current="false">성능 평가</button><button type="button" data-research-tab="guide" aria-current="false">알고리즘 설명</button></nav></section>
+  <section class="all-films-screen" id="allFilmsScreen" aria-label="전체 영화 보기" hidden><header class="all-films-header"><button type="button" id="allFilmsClose" class="all-films-back" aria-label="전체 영화 보기 닫기">←</button><div class="all-films-heading"><h2>영화 선택</h2><span id="allFilmsTotal"></span></div><label class="all-films-search-wrap"><span class="sr-only">영화 제목 검색</span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.4 15.4 5 5"/></svg><input type="search" id="allFilmsSearch" placeholder="영화 제목 검색" autocomplete="off" aria-label="전체 영화 검색"></label><label class="all-films-sort-wrap"><span class="sr-only">전체 영화 정렬</span><select id="allFilmsSort" aria-label="전체 영화 정렬"><option value="unrated">미평가 우선</option><option value="popular">인기순</option><option value="year">최신 영화순</option><option value="title">제목순</option></select></label></header><div class="all-films-body"><p id="allFilmsCount" class="all-films-count" aria-live="polite"></p><div id="allFilmsGrid" class="all-films-grid" role="list"></div><p id="allFilmsEmpty" class="all-films-empty" hidden>검색 결과가 없습니다.</p><button id="allFilmsMore" type="button" class="all-films-more" hidden>영화 더 보기</button></div></section><section class="research-screen" id="researchScreen" aria-label="추천 실험실" hidden><div class="research-bar"><button id="researchClose" type="button" aria-label="쇼케이스로 복귀">←</button><span id="researchTitle">분석</span><button id="researchMenu" type="button" aria-label="분석 메뉴">☰</button></div><nav id="researchTabs" class="research-tabs" aria-label="분석 화면 탐색"><button type="button" data-research-tab="compare" aria-current="false">알고리즘 비교</button><button type="button" data-research-tab="analysis" aria-current="false">데이터 분석</button><button type="button" data-research-tab="visualize" aria-current="false">추천 시각화</button><button type="button" data-research-tab="evaluate" aria-current="false">성능 평가</button><button type="button" data-research-tab="guide" aria-current="false">알고리즘 설명</button></nav></section>
   <div class="loading" id="loading" role="status" aria-live="polite"><div class="load-line"></div><span id="loadingText">영화 데이터를 불러오는 중...</span></div>
   <div class="toast" id="toast" aria-live="polite" role="status" hidden></div>
   <iframe id="coreFrame" title="기존 MovieRecLab 추천 엔진" src="../index.html" loading="eager" tabindex="-1"></iframe>
@@ -81,5 +82,6 @@
 <script src="./v12-rails.js?v=12"></script>
 <script src="./recommend-rails.js?v=8"></script>
 <script src="./synopsis.js?v=151"></script>
-<script src="./showcase.js?v=151"></script>
+<script src="./all-films.js?v=16"></script>
+<script src="./showcase.js?v=16"></script>
 </body></html>
