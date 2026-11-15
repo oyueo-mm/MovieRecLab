@@ -1,0 +1,347 @@
+name: V14 single-runner completion
+on:
+  push:
+    branches: [research/v14-single-runner]
+    paths:
+      - '.github/workflows/v14-single-runner.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: v14-single-runner
+  cancel-in-progress: false
+env:
+  OPENBLAS_NUM_THREADS: '2'
+  OMP_NUM_THREADS: '2'
+  MKL_NUM_THREADS: '2'
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reserve time for uploading checkpoints
+        run: echo "V14_DEADLINE=$(($(date +%s)+19800))" >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: pip install numpy==1.26.4 scipy==1.13.1 scikit-learn==1.6.1 implicit==0.7.2 gensim==4.3.3
+      - name: Verify research code
+        id: verify
+        run: |
+          python -m py_compile scripts/v14_*.py
+          python scripts/v14_families.py --self-test
+          node --check tests/v14-current-service.js
+          node --check tests/v14-browser-runtime.js
+      - name: Acquire and verify MovieLens once (runner-local only)
+        id: dataset
+        run: |
+          PYTHONPATH=scripts python - <<'PY'
+          import os, pathlib, zipfile, hashlib, json
+          import v14_common as c
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'v14-input'
+          root.mkdir(exist_ok=True)
+          p=pathlib.Path(c.download_archive(str(root/'ml-25m.zip')))
+          with zipfile.ZipFile(p) as z:
+              assert z.testzip() is None, 'Archive integrity failure'
+          with p.open('rb') as f: sha=hashlib.file_digest(f,'sha256').hexdigest()
+          small=root/'small';small.mkdir(exist_ok=True)
+          for name in ('movies.csv','ratings.csv','tags.csv','links.csv'):
+              data=c.small_source(name)
+              assert data and b'movieId' in data.splitlines()[0],name
+              (small/name).write_bytes(data)
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write('V14_DATASET='+str(p)+'\nV14_SMALL_DIR='+str(small)+'\n')
+          c.OUT.mkdir(exist_ok=True)
+          (c.OUT/'dataset-integrity.json').write_text(json.dumps({'archive_bytes':p.stat().st_size,'sha256_observed':sha,'crc_verified':True,'source':c.base.ZIP_URL,'note':'Observed checksum, not an independently verified official checksum; raw inputs never uploaded.'},indent=2))
+          print('LOCAL DATASET VERIFIED',p.stat().st_size,sha,flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && steps.dataset.outcome == 'success' }}
+        with:
+          name: v14-single-dataset-integrity
+          path: v14-results/dataset-integrity.json
+          retention-days: 30
+      - name: Reuse original 12 successful model families
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43736506657
+          pattern: v14-model-*
+          merge-multiple: true
+          path: v14-models
+      - name: Reuse successful LightGCN
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43739142527
+          name: v14-model-lightgcn
+          path: v14-models
+      - name: Previous 12 family reports for fingerprint verification
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43736506657
+          pattern: v14-family-*
+          merge-multiple: true
+          path: prior-reports
+      - name: Previous LightGCN family report
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43739142527
+          name: v14-family-lightgcn
+          path: prior-reports
+      - name: Install CPU PyTorch once
+        id: torch
+        run: pip install torch==2.7.1 --index-url https://download.pytorch.org/whl/cpu
+      - name: Train nmf using the local archive
+        id: fit_nmf
+        if: ${{ !cancelled() && steps.dataset.outcome == 'success' && steps.torch.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          remaining=$((V14_DEADLINE-$(date +%s)))
+          if [ "$remaining" -le 60 ]; then echo "Runner budget exhausted"; exit 124; fi
+          timeout --signal=TERM --kill-after=20s "${remaining}s" python -u scripts/v14_families.py nmf
+      - name: Save nmf checkpoint
+        if: ${{ !cancelled() && steps.fit_nmf.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-family-nmf
+          path: v14-results/family-nmf.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Save nmf derived weights
+        if: ${{ !cancelled() && steps.fit_nmf.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-model-nmf
+          path: v14-models/nmf.npz
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Train mf using the local archive
+        id: fit_mf
+        if: ${{ !cancelled() && steps.dataset.outcome == 'success' && steps.torch.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          remaining=$((V14_DEADLINE-$(date +%s)))
+          if [ "$remaining" -le 60 ]; then echo "Runner budget exhausted"; exit 124; fi
+          timeout --signal=TERM --kill-after=20s "${remaining}s" python -u scripts/v14_families.py mf
+      - name: Save mf checkpoint
+        if: ${{ !cancelled() && steps.fit_mf.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-family-mf
+          path: v14-results/family-mf.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Save mf derived weights
+        if: ${{ !cancelled() && steps.fit_mf.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-model-mf
+          path: v14-models/mf.npz
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Train svdpp using the local archive
+        id: fit_svdpp
+        if: ${{ !cancelled() && steps.dataset.outcome == 'success' && steps.torch.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          remaining=$((V14_DEADLINE-$(date +%s)))
+          if [ "$remaining" -le 60 ]; then echo "Runner budget exhausted"; exit 124; fi
+          timeout --signal=TERM --kill-after=20s "${remaining}s" python -u scripts/v14_families.py svdpp
+      - name: Save svdpp checkpoint
+        if: ${{ !cancelled() && steps.fit_svdpp.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-family-svdpp
+          path: v14-results/family-svdpp.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Save svdpp derived weights
+        if: ${{ !cancelled() && steps.fit_svdpp.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-model-svdpp
+          path: v14-models/svdpp.npz
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Train fm using the local archive
+        id: fit_fm
+        if: ${{ !cancelled() && steps.dataset.outcome == 'success' && steps.torch.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          remaining=$((V14_DEADLINE-$(date +%s)))
+          if [ "$remaining" -le 60 ]; then echo "Runner budget exhausted"; exit 124; fi
+          timeout --signal=TERM --kill-after=20s "${remaining}s" python -u scripts/v14_families.py fm
+      - name: Save fm checkpoint
+        if: ${{ !cancelled() && steps.fit_fm.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-family-fm
+          path: v14-results/family-fm.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Save fm derived weights
+        if: ${{ !cancelled() && steps.fit_fm.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-model-fm
+          path: v14-models/fm.npz
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Train lightfm using the local archive
+        id: fit_lightfm
+        if: ${{ !cancelled() && steps.dataset.outcome == 'success' && steps.torch.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          remaining=$((V14_DEADLINE-$(date +%s)))
+          if [ "$remaining" -le 60 ]; then echo "Runner budget exhausted"; exit 124; fi
+          timeout --signal=TERM --kill-after=20s "${remaining}s" python -u scripts/v14_families.py lightfm
+      - name: Save lightfm checkpoint
+        if: ${{ !cancelled() && steps.fit_lightfm.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-family-lightfm
+          path: v14-results/family-lightfm.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Save lightfm derived weights
+        if: ${{ !cancelled() && steps.fit_lightfm.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-model-lightfm
+          path: v14-models/lightfm.npz
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Train ncf using the local archive
+        id: fit_ncf
+        if: ${{ !cancelled() && steps.dataset.outcome == 'success' && steps.torch.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          remaining=$((V14_DEADLINE-$(date +%s)))
+          if [ "$remaining" -le 60 ]; then echo "Runner budget exhausted"; exit 124; fi
+          timeout --signal=TERM --kill-after=20s "${remaining}s" python -u scripts/v14_families.py ncf
+      - name: Save ncf checkpoint
+        if: ${{ !cancelled() && steps.fit_ncf.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-family-ncf
+          path: v14-results/family-ncf.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Save ncf derived weights
+        if: ${{ !cancelled() && steps.fit_ncf.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-model-ncf
+          path: v14-models/ncf.npz
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Verify all family artifacts and matching training corpus
+        id: complete
+        if: ${{ !cancelled() && steps.dataset.outcome == 'success' }}
+        env:
+          FIT_NMF: ${{ steps.fit_nmf.outcome }}
+          FIT_MF: ${{ steps.fit_mf.outcome }}
+          FIT_SVDPP: ${{ steps.fit_svdpp.outcome }}
+          FIT_FM: ${{ steps.fit_fm.outcome }}
+          FIT_LIGHTFM: ${{ steps.fit_lightfm.outcome }}
+          FIT_NCF: ${{ steps.fit_ncf.outcome }}
+        continue-on-error: true
+        run: |
+          PYTHONPATH=scripts python - <<'PY'
+          import pathlib,json,os
+          import v14_common as c
+          expected=set('ease ridge slim itemknn association cohort svd tag genre lda word2vec item2vec als bpr nmf mf svdpp fm lightfm ncf lightgcn'.split())
+          groups=set('ease ridge slim knn cohort svd tag-genre lda word2vec item2vec als bpr nmf mf svdpp fm lightfm ncf lightgcn'.split())
+          reports={}
+          for directory in ('prior-reports','v14-results'):
+              for p in pathlib.Path(directory).glob('family-*.json'):
+                  x=json.loads(p.read_text());reports[x['family']]=x
+          paths={p.stem:p for p in c.MODELS.glob('*.npz')}
+          print('Missing report families:',sorted(groups-set(reports)),flush=True)
+          print('Missing models:',sorted(expected-set(paths)),flush=True)
+          statuses={k:v for k,v in os.environ.items() if k.startswith('FIT_')}
+          assert len(statuses)==6 and all(v=='success' for v in statuses.values()),statuses
+          assert groups<=set(reports) and expected<=set(paths)
+          assert len({(r['catalog_sha256'],r['explicit_train_ratings'],r['positive_train']) for r in reports.values()})==1, 'Corpus fingerprint mismatch'
+          for name,p in paths.items(): c.restore(p)
+          print('All prior and new model artifacts validated',flush=True)
+          PY
+      - name: Browser quantization and runtime on same local corpus
+        id: browser
+        if: ${{ !cancelled() && steps.complete.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          remaining=$((V14_DEADLINE-$(date +%s)))
+          if [ "$remaining" -le 60 ]; then echo "Runner budget exhausted"; exit 124; fi
+          timeout --signal=TERM --kill-after=20s "${remaining}s" bash -e -c 'python -u scripts/v14_browser.py && npm install --no-save --no-package-lock playwright@1.52.0 && npx playwright install --with-deps chromium && node tests/v14-browser-runtime.js'
+      - name: Save browser evaluation results only
+        if: ${{ !cancelled() && steps.browser.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-browser
+          path: |
+            v14-results/browser-quantization.json
+            v14-results/browser-runtime.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Full 24-count integration using the same local corpus
+        id: integration
+        if: ${{ !cancelled() && steps.complete.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          remaining=$((V14_DEADLINE-$(date +%s)))
+          if [ "$remaining" -le 60 ]; then echo "Runner budget exhausted"; exit 124; fi
+          timeout --signal=TERM --kill-after=20s "${remaining}s" python -u scripts/v14_integration.py "3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30,40,50,75,100"
+      - name: Save complete or partial integration checkpoint
+        if: ${{ !cancelled() && steps.integration.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-integration-single
+          path: v14-results/integration-*.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Final completeness audit
+        if: ${{ !cancelled() }}
+        env:
+          DATASET: ${{ steps.dataset.outcome }}
+          MODELS: ${{ steps.complete.outcome }}
+          BROWSER: ${{ steps.browser.outcome }}
+          INTEGRATION: ${{ steps.integration.outcome }}
+        run: |
+          python - <<'PY'
+          import os,pathlib,json
+          expected=set(map(str,list(range(3,21))+[25,30,40,50,75,100]))
+          expected_families=set('ease ridge slim knn cohort svd tag-genre lda word2vec item2vec als bpr nmf mf svdpp fm lightfm ncf lightgcn'.split())
+          root=pathlib.Path('v14-results');root.mkdir(exist_ok=True)
+          families={}
+          for folder in (pathlib.Path('prior-reports'),root):
+              for p in folder.glob('family-*.json'):
+                  x=json.loads(p.read_text());families[x['family']]=len(x['variants'])
+          counts={}
+          for p in root.glob('integration-*.json'):
+              counts.update(json.loads(p.read_text())['results'])
+          stages={k:os.environ[k] for k in ('DATASET','MODELS','BROWSER','INTEGRATION')}
+          summary={'stages':stages,'families_reported':families,'missing_families':sorted(expected_families-set(families)),'completed_profile_counts':sorted(counts,key=int),'missing_profile_counts':sorted(expected-set(counts),key=int),'browser_runtime_present':(root/'browser-runtime.json').is_file(),'reused_supplements_from_run':43736506657}
+          (root/'single-runner-audit.json').write_text(json.dumps(summary,indent=2))
+          print(json.dumps(summary,indent=2))
+          assert all(x=='success' for x in stages.values()) and not summary['missing_families'] and not summary['missing_profile_counts'] and summary['browser_runtime_present']
+          PY
+      - name: Publish completeness audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-single-runner-audit
+          path: v14-results/single-runner-audit.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Remove local raw datasets
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/v14-input"
