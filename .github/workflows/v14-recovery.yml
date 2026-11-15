@@ -1,0 +1,232 @@
+name: V14 recovery (reuse successful experiments)
+on:
+  push:
+    branches: [research/v14-recovery]
+    paths:
+      - '.github/workflows/v14-recovery.yml'
+      - 'scripts/v14_*.py'
+      - 'tests/v14-*.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: v14-recovery
+  cancel-in-progress: false
+env:
+  OPENBLAS_NUM_THREADS: '2'
+  OMP_NUM_THREADS: '2'
+  MKL_NUM_THREADS: '2'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: pip install numpy==1.26.4 scipy==1.13.1 scikit-learn==1.6.1 implicit==0.7.2 gensim==4.3.3
+      - run: python -m py_compile scripts/v14_*.py && python scripts/v14_families.py --self-test
+      - run: node --check tests/v14-current-service.js && node --check tests/v14-browser-runtime.js
+      - run: |
+          PYTHONPATH=scripts python - <<'PY'
+          import numpy as np
+          from scipy import sparse
+          import v14_common as c
+          import v14_integration as q
+          import benchmark_comprehensive_v13 as prev
+          prev.selftest()
+          ids=np.array([0,1,2,3,4,5],dtype=np.int32)
+          f=np.arange(12,dtype=np.float32).reshape(6,2)
+          row=(1,0,0,np.array([7]),np.array([4.]),{3},ids,f,f,f,f,{'x':ids,'y':ids[::-1]},None)
+          assert q.policy_rank(row,'x',['x','y']).tolist()==ids.tolist()
+          assert q.policy_rank(row,('rrf20',(0,1),(.5,.5)),['x','y'])[0]==5
+          print('integration invariants passed')
+          PY
+  family:
+    needs: verify
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        model: [nmf,mf,svdpp,fm,lightfm,ncf,lightgcn]
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install numpy==1.26.4 scipy==1.13.1 scikit-learn==1.6.1 implicit==0.7.2 gensim==4.3.3
+      - if: contains(fromJSON('["mf","svdpp","fm","lightfm","ncf","lightgcn"]'), matrix.model)
+        run: pip install torch==2.7.1 --index-url https://download.pytorch.org/whl/cpu
+      - run: python -u scripts/v14_families.py ${{ matrix.model }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v14-family-${{ matrix.model }}
+          path: v14-results/
+          if-no-files-found: warn
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v14-model-${{ matrix.model }}
+          path: v14-models/
+          if-no-files-found: warn
+          retention-days: 7
+  integration:
+    needs: [verify,family]
+    if: ${{ needs.verify.result == 'success' && needs.family.result == 'success' }}
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        counts: ['3,4,5','6,7,8','9,10,11','12,13,14','15,16,17','18,19,20','25,30,40','50,75,100']
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: pip install numpy==1.26.4 scipy==1.13.1 scikit-learn==1.6.1 implicit==0.7.2 gensim==4.3.3
+      - name: Reuse successful model artifacts from V14 attempt 1
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43736506657
+          pattern: v14-model-*
+          merge-multiple: true
+          path: v14-models
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v14-model-*
+          merge-multiple: true
+          path: v14-models
+      - name: Verify all required model families are available
+        run: |
+          python - <<'PY'
+          import pathlib
+          expected=set('ease ridge slim itemknn association cohort svd tag genre lda word2vec item2vec als bpr nmf mf svdpp fm lightfm ncf lightgcn'.split())
+          found={p.stem for p in pathlib.Path('v14-models').glob('*.npz')}
+          print('models:',sorted(found))
+          assert expected<=found, 'missing models: '+str(sorted(expected-found))
+          PY
+      - run: python -u scripts/v14_integration.py "${{ matrix.counts }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v14-integration-${{ strategy.job-index }}
+          path: v14-results/
+          if-no-files-found: warn
+          retention-days: 30
+  browser:
+    needs: [verify,family]
+    if: ${{ needs.verify.result == 'success' && needs.family.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: pip install numpy==1.26.4 scipy==1.13.1 scikit-learn==1.6.1 implicit==0.7.2 gensim==4.3.3
+      - name: Reuse successful model artifacts from V14 attempt 1
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43736506657
+          pattern: v14-model-*
+          merge-multiple: true
+          path: v14-models
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v14-model-*
+          merge-multiple: true
+          path: v14-models
+      - name: Verify all required model families are available
+        run: |
+          python - <<'PY'
+          import pathlib
+          expected=set('ease ridge slim itemknn association cohort svd tag genre lda word2vec item2vec als bpr nmf mf svdpp fm lightfm ncf lightgcn'.split())
+          found={p.stem for p in pathlib.Path('v14-models').glob('*.npz')}
+          print('models:',sorted(found))
+          assert expected<=found, 'missing models: '+str(sorted(expected-found))
+          PY
+      - run: python -u scripts/v14_browser.py
+      - run: npm install --no-save --no-package-lock playwright@1.52.0 && npx playwright install --with-deps chromium
+      - run: node tests/v14-browser-runtime.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v14-browser
+          path: v14-results/
+          if-no-files-found: warn
+          retention-days: 30
+  audit:
+    needs: [verify,family,integration,browser]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Reuse V14 family reports
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43736506657
+          pattern: v14-family-*
+          path: results
+      - name: Reuse V14 supplementary reports
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43736506657
+          pattern: v14-supplement-*
+          path: results
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v14-*
+          path: results
+      - name: Aggregate coverage and failure audit
+        env:
+          VERIFY: ${{ needs.verify.result }}
+          FAMILY: ${{ needs.family.result }}
+          SUPPLEMENT: success
+          INTEGRATION: ${{ needs.integration.result }}
+          BROWSER: ${{ needs.browser.result }}
+        run: |
+          python - <<'PY'
+          import json,os,pathlib
+          groups=['ease','ridge','slim','knn','cohort','svd','tag-genre','lda','word2vec','item2vec','als','bpr','nmf','mf','svdpp','fm','lightfm','ncf','lightgcn']
+          root=pathlib.Path('results')
+          models={}
+          for p in root.glob('v14-family-*/*.json'):
+              x=json.loads(p.read_text());models[x['family']]=x
+          integrated={}
+          for p in root.glob('v14-integration-*/*.json'):
+              x=json.loads(p.read_text());integrated.update(x['results'])
+          expected=set(map(str,list(range(3,21))+[25,30,40,50,75,100]))
+          phases={k:os.environ[k] for k in ('VERIFY','FAMILY','SUPPLEMENT','INTEGRATION','BROWSER')}
+          summary={'phase_status':phases,'model_families':sorted(models),'missing_families':sorted(set(groups)-set(models)),'configs':{k:len(v['variants']) for k,v in models.items()},'missing_profile_counts':sorted(expected-set(integrated),key=int),'browser_runtime_present':bool(list(root.glob('v14-browser/browser-runtime.json'))),'supplements':[p.name for p in root.glob('v14-supplement-*/*.json')],'test':{n:{'selected':x['selected'],'delta_v11':x['paired_vs_v11_refit'],'delta_small':x['paired_vs_small'],'rail_test':x['rail_test']} for n,x in integrated.items()}}
+          pathlib.Path('v14-audit.json').write_text(json.dumps(summary,indent=2))
+          print(json.dumps({k:v for k,v in summary.items() if k!='test'},indent=2))
+          assert all(v=='success' for v in phases.values()) and not summary['missing_families'] and not summary['missing_profile_counts'] and summary['browser_runtime_present'] and len(summary['supplements'])==2
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v14-audit
+          path: v14-audit.json
+          if-no-files-found: warn
+          retention-days: 30
