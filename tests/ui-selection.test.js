@@ -3,7 +3,7 @@ const fs=require('node:fs'),assert=require('node:assert/strict'),path=require('n
 const root=path.resolve(__dirname,'..'),read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const html=read('index.html'),app=read('app.js'),onboarding=read('onboarding.js'),css=read('styles.css'),advanced=read('advanced.js');
 for(const file of ['app.js','onboarding.js','advanced.js','engine.js','eval-worker.js','advanced-worker.js'])new vm.Script(read(file),{filename:file});
-assert.match(app,/const DEFAULT_MODE='ease';/,'EASE must be the default based on the 43-user evaluation');
+assert.match(app,/const DEFAULT_MODE='adaptive';/,'Adaptive model must be the default; manual EASE remains available');
 assert.match(app,/rated:new Map\(\),mode:DEFAULT_MODE/,'first model must initialize from default');
 assert.match(onboarding,/state.mode!==DEFAULT_MODE/,'onboarding should honor the validated default');
 assert.equal((html.match(/id="algoChoices"/g)||[]).length,1);
@@ -15,7 +15,7 @@ assert.match(app,/state\.loaded&&!?\$\('recommendWorkspace'\)\.hidden\)recommend
 assert.match(app,/x\.setAttribute\('aria-pressed',String\(selected\)\)/);
 assert.match(app,/if\(!\$\('recommendWorkspace'\)\.hidden\)recommendNow\(\);/);
 assert.match(css,/\.algo-grid\{display:grid/);
-const ctx={};vm.runInNewContext(advanced,{self:ctx,globalThis:ctx});assert.equal(Object.keys(ctx.MovieRecAdvanced.labels).length,17);
+const ctx={};vm.runInNewContext(advanced,{self:ctx,globalThis:ctx});assert.equal(Object.keys(ctx.MovieRecAdvanced.labels).length,18);
 const initialButtons=(html.match(/data-algo="/g)||[]).length;assert.equal(initialButtons,5,'five base modes should be authored directly');
-assert.equal(initialButtons+ctx.MovieRecAdvanced.modes.length,22,'22 selectable modes should be visible');
-console.log('PASS: 22 unified algorithms, EASE default, selection auto-recommend, ratings refresh, a11y state');
+assert.equal(initialButtons+ctx.MovieRecAdvanced.modes.length,23,'23 selectable modes should be visible');
+console.log('PASS: 23 unified algorithms, adaptive default, selection auto-recommend, ratings refresh, a11y state');

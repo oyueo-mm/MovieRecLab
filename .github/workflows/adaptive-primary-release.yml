@@ -1,0 +1,33 @@
+name: Adaptive primary release verification
+on:
+  push:
+    branches: ['feat/adaptive-primary-default']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify inference and existing model selection
+        run: |
+          node tests/adaptive-primary.test.js
+          node tests/advanced.test.js
+          node tests/ui-selection.test.js
+          node tests/showcase-default-route.test.js
+          node tests/recommend-upgrades.test.js
+          node --check showcase/showcase.js
+      - name: Install DOM test dependency
+        run: npm install --no-save --no-package-lock jsdom@26
+      - name: UI and recommendation regression
+        run: |
+          node tests/showcase.test.js
+          node tests/ui-dom-integration.test.js
+          node tests/showcase-multirail.test.js
+          node tests/v12-rails.test.js
+          node tests/v17-rating-drag.test.js

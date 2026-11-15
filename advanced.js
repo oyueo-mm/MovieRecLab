@@ -4,7 +4,7 @@ const labels={
 association:'연관 규칙',regression:'Ridge 회귀',svd:'Truncated SVD',nmf:'NMF',mf:'MF (SGD)',
 imf:'Implicit MF',bpr:'BPR-MF',fm:'Factorization Machines',lda:'LDA',word2vec:'Word2Vec',
 item2vec:'Item2Vec',svdpp:'SVD++',lightfm:'LightFM형 하이브리드',ease:'EASE',slim:'SLIM',
-ncf:'NCF',lightgcn:'LightGCN'
+ncf:'NCF',lightgcn:'LightGCN',adaptive:'적응형 추천'
 };
 const descriptions={
 association:'함께 4점 이상 평가한 영화의 조건부 연관성과 Lift를 계산합니다.',
@@ -23,7 +23,8 @@ lightfm:'사용자 벡터와 영화 ID·장르 특성 임베딩을 함께 BPR �
 ease:'인기 영화 하위집합의 Gram 행렬 역행렬로 선형 아이템 관계를 학습합니다.',
 slim:'인기 영화 하위집합의 희소 Elastic Net 아이템 회귀를 학습합니다.',
 ncf:'사용자·영화 임베딩의 비선형 MLP 상호작용으로 이진 선호를 학습합니다.',
-lightgcn:'사용자-영화 상호작용 그래프에서 임베딩을 전파하고 BPR로 학습합니다.'
+lightgcn:'사용자-영화 상호작용 그래프에서 임베딩을 전파하고 BPR로 학습합니다.',
+adaptive:'검증된 평가 영화 수에서는 여러 추천 모델의 순위를 결합하고, 그 외에는 EASE를 사용합니다.'
 };
 const modes=Object.keys(labels);
 function rng(seed){return function(){seed=(Math.imul(1664525,seed)+1013904223)>>>0;return seed/4294967296;};}
@@ -176,7 +177,7 @@ const g1=propagate(g),g2=propagate(g1),scale=.06/Math.max(1,edges.length/200);fo
 const e1=propagate(E),e2=propagate(e1),Q=new Float32Array(I*k);for(let i=0;i<I;i++)for(let d=0;d<k;d++)Q[i*k+d]=(E[(U+i)*k+d]+e1[(U+i)*k+d]+e2[(U+i)*k+d])/3;
 return{kind:'contentVec',k,Q};
 }
-function train(mode,model){if(!labels[mode])throw Error('등록되지 않은 고급 알고리즘');const p=prepare(model);let fit;
+function train(mode,model){if(!labels[mode])throw Error('등록되지 않은 고급 알고리즘');if(mode==='adaptive')return {mode,fit:{kind:'adaptive',cache:new Map()}};const p=prepare(model);let fit;
 if(mode==='association')fit=pairwiseCounts(p);
 else if(mode==='regression')fit={kind:'regression'};
 else if(mode==='svd')fit=truncatedSVD(p);
@@ -205,7 +206,56 @@ for(const [x,y] of rows)for(let d=0;d<k;d++){b[d]+=x[d]*y;for(let j=0;j<k;j++)A[
 const w=ridgeSolve(A,b,k);
 return i=>{let z=w[0]+w[1]*((p.films[i].year||2000)-2000)/130;for(const g of p.genres[i])z+=w[2+g]/Math.sqrt(Math.max(1,p.genres[i].length));return z;};
 }
+// Exact profile counts validated in run 43726869262. Unmeasured counts retain EASE.
+// Do not infer ranges or interpolate weights without an independent test.
+const adaptivePolicies=Object.freeze({
+  3:Object.freeze(['hybrid','slim']),
+  5:Object.freeze(['ncf','association','hybrid']),
+  10:Object.freeze(['ease','association','popular']),
+  20:Object.freeze(['ease','association','user'])
+});
+function adaptivePolicy(n){return (adaptivePolicies[n]||['ease']).slice();}
+function scoreAdaptive(trained,model,entries,limit=10){
+  const E=root.MovieRecEngine,profile=[...E.normalizeProfile(entries,model)],seen=new Set(profile.map(([id])=>id));
+  const modes=adaptivePolicy(profile.length),cache=trained.fit.cache;
+  function native(mode,depth){
+    let rows;
+    if(labels[mode]){
+      if(!cache.has(mode))cache.set(mode,train(mode,model));
+      rows=score(cache.get(mode),model,profile,depth);
+    }else rows=E.recommend(model,profile,mode,depth);
+    const unique=new Set();
+    return rows.filter(r=>{const id=r.movie?.id;if(!Number.isFinite(id)||seen.has(id)||unique.has(id)||model.movieById.get(id)?.n<2)return false;unique.add(id);return true;});
+  }
+  const methodName=mode=>labels[mode]||({hybrid:'하이브리드',popular:'인기 기반',user:'사용자 KNN'}[mode])||mode;
+  function fallback(reason='입력 수에 대한 독립 검증이 없어 기존 EASE 사용'){
+    try{return native('ease',limit).map(r=>({...r,method:'adaptive',policy:['ease'],why:'EASE · '+reason+' · '+r.why}));}
+    catch(e){return native('popular',limit).map(r=>({...r,method:'adaptive',policy:['popular'],why:'인기 기반 · EASE 계산 실패로 대체'}));}
+  }
+  if(modes.length===1)return fallback(profile.length>=50?'기존 EASE 유지':'해당 입력 수는 기존 EASE 유지');
+  try{
+    // Reproduce the benchmark: top-50 native rankings, equal weights, RRF k=20,
+    // deterministic tie break by numeric movie ID. No score-scale mixing.
+    const lists=modes.map(mode=>native(mode,50)),all=new Map(),weight=1/modes.length;
+    lists.forEach((rows,i)=>rows.forEach((r,j)=>{
+      const id=r.movie.id,part=weight/(20+j+1),current=all.get(id)||{movie:r.movie,score:0,parts:new Map()};
+      current.score+=part;current.parts.set(modes[i],part);all.set(id,current);
+    }));
+    const result=[...all.values()].sort((a,b)=>b.score-a.score||a.movie.id-b.movie.id).slice(0,limit).map(r=>({
+      movie:r.movie,score:r.score,method:'adaptive',policy:modes.slice(),
+      why:modes.map(methodName).join(' + ')+' · 평가 수에 맞춘 순위 융합',
+      factors:modes.map(m=>[methodName(m),(r.parts.get(m)||0)/Math.max(r.score,1e-12)])
+    }));
+    if(!result.length)return fallback('앙상블 후보 부족');
+    if(result.length<limit){
+      const ids=new Set(result.map(r=>r.movie.id));
+      for(const r of fallback('앙상블 후보 부족')){if(result.length>=limit)break;if(!ids.has(r.movie.id)){ids.add(r.movie.id);result.push(r);}}
+    }
+    return result;
+  }catch(e){return fallback('앙상블 계산 실패로 대체');}
+}
 function score(trained,model,profileEntries,limit=10){
+if(trained.mode==='adaptive')return scoreAdaptive(trained,model,profileEntries,limit);
 const {fit,p,mode}=trained,profile=[...profileEntries].filter(([id,r])=>p.fi.has(+id)&&Number.isFinite(+r)),seen=new Set(profile.map(([id])=>+id));
 if(!profile.length)return root.MovieRecEngine.recommend(model,profileEntries,'popular',limit);
 let fn;
@@ -221,5 +271,5 @@ const output=ranked.slice(0,limit).map(([i,s,v])=>({movie:model.movieById.get(p.
 if(output.length<limit){const ids=new Set(output.map(x=>x.movie.id));for(const x of root.MovieRecEngine.recommend(model,profileEntries,'popular',limit)){if(output.length>=limit)break;if(!ids.has(x.movie.id)){output.push({...x,why:'고급 모델의 후보 부족 · 인기 기반 보완'});ids.add(x.movie.id);}}}
 return output;
 }
-root.MovieRecAdvanced={labels,descriptions,modes,train,score};
+root.MovieRecAdvanced={labels,descriptions,modes,train,score,adaptivePolicy};
 })(typeof self!=='undefined'?self:globalThis);
