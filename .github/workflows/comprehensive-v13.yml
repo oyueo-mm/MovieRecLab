@@ -4,6 +4,9 @@ on:
     branches: [research/comprehensive-v13]
     paths:
       - '.github/workflows/comprehensive-v13.yml'
+      - 'scripts/benchmark_comprehensive_v13.py'
+      - 'tests/comprehensive-v13-*.js'
+      - 'adaptive-fusion.js'
   workflow_dispatch:
 permissions:
   contents: read
