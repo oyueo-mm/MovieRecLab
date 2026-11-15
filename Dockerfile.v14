@@ -1,0 +1,12 @@
+FROM node:22-bookworm-slim
+ENV PYTHONUNBUFFERED=1 OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 PORT=8080
+RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-venv curl gh ca-certificates && rm -rf /var/lib/apt/lists/* && python3 -m venv /opt/venv && /opt/venv/bin/pip install --no-cache-dir numpy==1.26.4 scipy==1.13.1 scikit-learn==1.6.1 implicit==0.7.2 gensim==4.3.3
+ENV PATH="/opt/venv/bin:$PATH"
+WORKDIR /app
+COPY --chown=node:node scripts ./scripts
+COPY --chown=node:node tests/v14-current-service.js ./tests/v14-current-service.js
+COPY --chown=node:node engine.js advanced.js ./
+COPY --chown=node:node showcase ./showcase
+USER node
+EXPOSE 8080
+CMD ["python","-u","scripts/v14_start.py"]
