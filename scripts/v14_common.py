@@ -32,7 +32,7 @@ def download_archive(path):
         with zipfile.ZipFile(path) as z:
             assert "ml-25m/ratings.csv" in z.namelist()
         return path
-    for attempt in range(1,7):
+    for attempt in range(1,11):
         try:
             print("DATASET DOWNLOAD ATTEMPT",attempt,flush=True)
             subprocess.run(["curl","--fail","--location","--connect-timeout","35","--max-time","420","--silent","--show-error","--output",path,base.ZIP_URL],check=True)
@@ -43,7 +43,7 @@ def download_archive(path):
         except (subprocess.CalledProcessError,zipfile.BadZipFile,OSError,AssertionError) as exc:
             pathlib.Path(path).unlink(missing_ok=True)
             print("DATASET DOWNLOAD FAILED",attempt,str(exc),flush=True)
-            if attempt==6:raise
+            if attempt==10:raise
             time.sleep(min(120,10*2**(attempt-1))+random.uniform(0,10))
 
 def retry(fn):
@@ -54,12 +54,26 @@ def retry(fn):
             print("SMALL DATA RETRY",attempt+1,str(exc),flush=True)
             time.sleep(5*2**attempt+random.uniform(0,5))
 
+def small_source(name):
+    local=os.environ.get("V14_SMALL_DIR")
+    if local:
+        return (pathlib.Path(local)/name).read_bytes()
+    def fetch():
+        with urllib.request.urlopen(base.SMALL_BASE+name,timeout=90) as f:return f.read()
+    return retry(fetch)
+
+def local_small_meta():
+    def rows(name):return list(csv.DictReader(io.StringIO(small_source(name).decode("utf-8-sig"),newline="")))
+    linkset={(int(x["imdbId"]),int(x["tmdbId"])):int(x["movieId"]) for x in rows("links.csv") if x.get("imdbId","").isdigit() and x.get("tmdbId","").isdigit()}
+    meta={int(x["movieId"]):{"genre":set(x["genres"].split("|"))-{"(no genres listed)"},"title":x["title"]} for x in rows("movies.csv")}
+    return linkset,meta
+
 def load(cutoff=0, native=False):
     """Train on explicit ratings, excluding a new user cohort before any fitting."""
     base.EXCLUDE_REMAINDER=61
     with tempfile.TemporaryDirectory(prefix="v14-") as tmp:
         p=download_archive(str(pathlib.Path(tmp)/"ml-25m.zip"))
-        links,meta=retry(base.load_small)
+        links,meta=local_small_meta()
         with zipfile.ZipFile(p) as z:
             if native:
                 movies=list(base.read_csv(z,"movies.csv"))[1:]
@@ -97,7 +111,7 @@ def load(cutoff=0, native=False):
 
 def small_ratings(ids):
     mp={int(x):i for i,x in enumerate(ids)}
-    with io.BytesIO(retry(lambda:urllib.request.urlopen(base.SMALL_BASE+"ratings.csv",timeout=90).read())) as f:
+    with io.BytesIO(small_source("ratings.csv")) as f:
         rows=csv.DictReader(io.TextIOWrapper(f,encoding="utf-8-sig"))
         data=[(int(x["userId"])-1,mp[int(x["movieId"])],float(x["rating"])) for x in rows if int(x["movieId"]) in mp]
     u,i,r=zip(*data)
