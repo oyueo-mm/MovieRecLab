@@ -7,6 +7,7 @@ const A=globalThis.MovieRecAdvanced;globalThis.window=globalThis;
 async function main(){
  const src='https://raw.githubusercontent.com/smanihwr/ml-latest-small/ba3cd91761e54faa64483456b619d1a1f4d70971/';
  async function fetchText(f){
+   if(process.env.V14_SMALL_DIR)return fs.readFileSync(require('node:path').join(process.env.V14_SMALL_DIR,f),'utf8');
    let last;
    for(let i=0;i<5;i++){
      try{const r=await fetch(src+f,{signal:AbortSignal.timeout(120000)});if(!r.ok)throw Error(f+' '+r.status);return await r.text();}
