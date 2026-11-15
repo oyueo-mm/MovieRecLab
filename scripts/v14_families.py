@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """V14 model families. Each job trains actual requested model objectives on all mapped training ratings."""
-import sys,time,json,math,pathlib,resource,itertools
+import sys,time,json,math,pathlib,resource,itertools,hashlib
 import numpy as np
 from scipy import sparse,linalg
 from sklearn.decomposition import TruncatedSVD,LatentDirichletAllocation
@@ -11,8 +11,8 @@ import benchmark_v10 as v10
 def gram(mat):
     return (mat.T@mat).toarray().astype(np.float32)
 def ease_family(d,tag):
-    g=gram(d["pos"]);n=len(g)
-    for lam in (100.,500.,1500.):
+    g=gram(d["pos"]) if tag!="ridge" else None;n=len(d["usage"])
+    for lam in ((100.,500.,1500.) if tag!="ridge" else ()):
         g.flat[::n+1]+=lam
         p=linalg.cho_solve(linalg.cho_factor(g,lower=True,check_finite=False),np.eye(n,dtype=np.float32),check_finite=False)
         g.flat[::n+1]-=lam
@@ -23,6 +23,7 @@ def ease_family(d,tag):
         # Dense exact full catalog is also evaluated, never published/deployed.
         yield "ease-exact","ease-full-exact-l"+str(int(lam)),c.model("linear",b=b),False
         del b
+    if tag!="ridge":return
     # Ridge reconstruction with explicit mean-centered rating signal.
     x=d["ratings"].copy();x.data-=3.5
     g=gram(x);n=len(g)
@@ -58,8 +59,9 @@ def slim_family(d,tag):
         yield "slim",f"slim-all-target-k{k}-a{alpha}",c.model("linear",b=b)
 
 def knn_family(d,tag):
-    p=d["pos"];u=d["usage"];g=gram(p);np.fill_diagonal(g,0)
-    for method in ("cosine","jaccard","confidence","lift"):
+    p=d["pos"];u=d["usage"];g=gram(p) if tag=="knn" else None
+    if g is not None:np.fill_diagonal(g,0)
+    for method in (("cosine","jaccard","confidence","lift") if tag=="knn" else ()):
         for k in (50,150):
             if method=="cosine":s=g/np.sqrt(np.maximum(1,u[:,None])*np.maximum(1,u[None,:]))
             elif method=="jaccard":s=g/np.maximum(1,u[:,None]+u[None,:]-g)
@@ -70,7 +72,7 @@ def knn_family(d,tag):
             del s
     del g
     # Aggregated clusters for privacy-safe user-neighbor approximation.
-    for dim,groups in ((24,64),(48,128)):
+    for dim,groups in (((24,64),(48,128)) if tag=="cohort" else ()):
         z=TruncatedSVD(dim,n_iter=4,random_state=c.SEED).fit(p);q=c.norm(z.components_.T)
         user=c.norm(p@q);active=np.flatnonzero(np.diff(p.indptr)>=5)
         km=MiniBatchKMeans(groups,batch_size=2048,n_init=2,random_state=c.SEED).fit(user[active])
@@ -79,15 +81,16 @@ def knn_family(d,tag):
         prefs/=np.maximum(1,counts[:,None]);prefs[counts<20]=0
         yield "cohort",f"cohort-{groups}-dim{dim}",c.model("cohort",q=q,centers=c.norm(km.cluster_centers_),groups=prefs)
     # SVD and tag/genre ablation and actual calendar-time decay variants.
-    for dim in (24,64):
+    for dim in ((24,64) if tag=="svd" else ()):
         z=TruncatedSVD(dim,n_iter=4,random_state=c.SEED).fit(p);q=c.norm(z.components_.T)
         for neg,decay in ((1.,0),(.5,0),(0.,0),(1.,30),(1.,180),(1.,365)):
             yield "svd",f"svd-d{dim}-neg{neg}-days{decay}",c.model("latent",q=q,negative=neg,time_decay=decay)
-    if d["genome"] is not None:
+    if tag=="tag-genre" and d["genome"] is not None:
         v=d["found"];g=d["genome"][v];z=TruncatedSVD(48,n_iter=4,random_state=c.SEED).fit_transform(g-g.mean(axis=0))
         q=np.zeros((len(u),48),np.float32);q[v]=c.norm(z)
         for neg in (0.,.5,1.):
             yield "tag",f"tag-genome-neg{neg}",c.model("latent",q=q,negative=neg)
+    if tag!="tag-genre":return
     yield "genre","genre-only",c.model("latent",q=d["genre"])
     yield "genre","genre-ridge",c.model("fold",q=d["genre"],bias=np.zeros(len(u),np.float32),reg=.5)
 
@@ -95,16 +98,16 @@ def text_family(d,tag):
     from gensim.models import Word2Vec
     import re
     p=d["pos"]
-    for dim in (24,48):
+    for dim in ((24,48) if tag=="lda" else ()):
         lda=LatentDirichletAllocation(n_components=dim,learning_method="online",max_iter=3,batch_size=1024,n_jobs=2,random_state=c.SEED)
         lda.fit(p);yield "lda",f"lda-topics{dim}",c.model("latent",q=c.norm(lda.components_.T))
     # Distinct Word2Vec over title/genre text, not item-ID baskets.
     ids=d["ids"];corpus=[re.findall(r"[a-z0-9]+",d["meta"][int(i)]["title"].lower())+["genre_"+g.lower() for g in sorted(d["meta"][int(i)]["genre"])] for i in ids]
-    for dim in (32,64):
+    for dim in ((32,64) if tag=="word2vec" else ()):
         w=Word2Vec(corpus,vector_size=dim,window=5,min_count=2,sg=1,workers=2,epochs=20,seed=c.SEED)
         q=np.array([np.mean([w.wv[t] for t in row if t in w.wv],axis=0) if any(t in w.wv for t in row) else np.zeros(dim) for row in corpus],np.float32)
         yield "word2vec",f"title-genre-word2vec-d{dim}",c.model("latent",q=c.norm(q))
-    for dim in (32,64):
+    for dim in ((32,64) if tag=="item2vec" else ()):
         w=Word2Vec(sentences=v10.BasketSentences(p),vector_size=dim,window=8,min_count=5,sg=1,workers=2,negative=5,epochs=5,seed=c.SEED)
         q=np.zeros((p.shape[1],dim),np.float32)
         for i in range(len(q)):
@@ -116,14 +119,15 @@ def implicit_family(d,tag):
     from implicit.bpr import BayesianPersonalizedRanking
     from sklearn.decomposition import NMF
     p=d["pos"]
-    for dim,reg in ((32,.08),(64,.15)):
+    for dim,reg in (((32,.08),(64,.15)) if tag=="als" else ()):
         a=AlternatingLeastSquares(factors=dim,regularization=reg,iterations=15,random_state=c.SEED,num_threads=2)
         a.fit(p,show_progress=False)
         yield "als",f"als-d{dim}-r{reg}",c.model("latent",q=c.norm(a.item_factors))
+    for dim in ((32,64) if tag=="bpr" else ()):
         b=BayesianPersonalizedRanking(factors=dim,learning_rate=.035,regularization=.01,iterations=20,verify_negative_samples=True,random_state=c.SEED,num_threads=2)
         b.fit(p,show_progress=False)
         yield "bpr",f"bpr-d{dim}",c.model("latent",q=c.norm(b.item_factors))
-    for dim in (16,32):
+    for dim in ((16,32) if tag=="nmf" else ()):
         a=NMF(n_components=dim,init="nndsvda",solver="mu",max_iter=20,random_state=c.SEED).fit(p)
         yield "nmf",f"nmf-d{dim}",c.model("latent",q=c.norm(a.components_.T))
 
@@ -228,12 +232,12 @@ def lightgcn_family(d,tag):
         yield "lightgcn",f"lightgcn-d{k}-l{layers}",c.model("latent",q=q)
 
 def family(d,mode):
-    f={"ease":ease_family,"slim":slim_family,"knn":knn_family,"text":text_family,"implicit":implicit_family,"lightgcn":lightgcn_family}
+    f={"ease":ease_family,"ridge":ease_family,"slim":slim_family,**{x:knn_family for x in ("knn","cohort","svd","tag-genre")},**{x:text_family for x in ("lda","word2vec","item2vec")},**{x:implicit_family for x in ("als","bpr","nmf")},"lightgcn":lightgcn_family}
     return f[mode](d,mode) if mode in f else torch_family(d,mode)
 
 def run(mode):
     d=c.load();c.MODELS.mkdir(exist_ok=True);c.OUT.mkdir(exist_ok=True)
-    report={"family":mode,"explicit_train_ratings":int(d["ratings"].nnz),"positive_train":int(d["pos"].nnz),"catalog":len(d["ids"]),"variants":{},"selected":{},"limitations":["validation only; independent test in integration","cold-start fold-in or item vectors; no user factors exported","SLIM per-target sparse support; LightGCN sampled BPR while full graph propagates; LightFM BPR-style feature model"]}
+    report={"family":mode,"explicit_train_ratings":int(d["ratings"].nnz),"positive_train":int(d["pos"].nnz),"catalog":len(d["ids"]),"catalog_sha256":hashlib.sha256(d["ids"].tobytes()).hexdigest(),"variants":{},"selected":{},"limitations":["validation only; independent test in integration","cold-start fold-in or item vectors; no user factors exported","SLIM per-target sparse support; LightGCN sampled BPR while full graph propagates; LightFM BPR-style feature model"]}
     start=time.monotonic()
     def write():
         report["elapsed_s"]=time.monotonic()-start;report["peak_rss_mib"]=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024
