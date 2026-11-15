@@ -1,0 +1,60 @@
+name: Independent split protocol benchmark
+on:
+  push:
+    branches: ['research/split-protocol-benchmark']
+    paths: ['scripts/benchmark_split_protocols.py', 'tests/split-protocol-benchmark.js', '.github/workflows/split-protocol-benchmark.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  small:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check tests/split-protocol-benchmark.js && node tests/split-protocol-benchmark.js --self-test
+      - run: node tests/split-protocol-benchmark.js ${{ matrix.shard }} 8
+      - uses: actions/upload-artifact@v4
+        with:
+          name: split-small-${{ matrix.shard }}
+          path: research-results/split-small-*.json
+          if-no-files-found: error
+  large:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      OPENBLAS_NUM_THREADS: '2'
+      OMP_NUM_THREADS: '2'
+      MKL_NUM_THREADS: '2'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install numpy==1.26.4 scipy==1.13.1 scikit-learn==1.6.1 implicit==0.7.2 gensim==4.3.3
+      - run: python -m py_compile scripts/benchmark_split_protocols.py
+      - name: Split invariants
+        run: |
+          PYTHONPATH=scripts python - <<'PY'
+          import benchmark_split_protocols as b
+          h=[(i,5,i) for i in range(100)]
+          a=list(b.split_cases(h,10,1))
+          assert len(a)==21 and a==list(b.split_cases(h,10,1))
+          for p,r,x,y in a:
+              assert len(x)==10 and len(y)==20 and not set(x)&set(y)
+              if p!='random': assert max(v[2] for v in x)<min(v[2] for v in y)
+          print('split invariants passed')
+          PY
+      - run: python -u scripts/benchmark_split_protocols.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: split-25m
+          path: research-results/split-25m.json
+          if-no-files-found: error
