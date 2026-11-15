@@ -1,0 +1,28 @@
+name: Adaptive default model benchmark
+on:
+  push:
+    branches: ['research/adaptive-default-benchmark']
+    paths: ['adaptive-fusion.js','tests/adaptive-default-benchmark.js','.github/workflows/adaptive-default-benchmark.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  benchmark:
+    strategy:
+      fail-fast: false
+      matrix:
+        count: [3, 5, 10, 20, 50, 100]
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check adaptive-fusion.js && node --check tests/adaptive-default-benchmark.js && node tests/adaptive-default-benchmark.js --self-test
+      - run: node tests/adaptive-default-benchmark.js ${{ matrix.count }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: adaptive-${{ matrix.count }}
+          path: research-results/adaptive-*.json
+          if-no-files-found: error

@@ -1,0 +1,12 @@
+# Adaptive default model benchmark
+
+Independent research branch; deployed site and existing experiments are untouched.
+
+- Target: the actual Small-based main recommendation engine, not 25M secondary recommendation rows. Eight existing candidates (EASE, association rules, NCF, hybrid, User KNN, popularity, Item KNN, SLIM). Compare fixed EASE, validation-selected single model by count, and ranked fusion (RRF k=20, depth=50, pair weights 25/75, 50/50, 75/25; three predeclared equal-weight triples). 95 predeclared policies.
+- New fixed 160 holdouts, excluding the previous 44 and 88-user cohorts; 80 validation/80 test; no held-out ratings or tags used for training. Users without enough history for a condition are excluded equally. A (earliest), B (past-random), C (full random), 1/10/10 repeats; 4+ truth, last/random 20%. No-positive cases receive zero. Input 3/5/10/20/50/100. Same user sets and splits for all candidates.
+- Select on validation only by weighted macro NDCG@10 (25% A, 25% B, 50% C; C gets larger weight to reflect free choice of previously viewed films). Prefer single model unless fusion improves validation objective by >=0.001. Test selection once; no alternate winner chosen on test.
+- Deployment gate per exact count: validation/test n >=25 each; primary objective delta vs EASE >=0.005, paired user-bootstrap lower bound >0 with Bonferroni correction across six counts; no protocol NDCG/Recall decrease >0.005, Hit Rate decrease >0.02; coverage at least 90% of EASE for each protocol. These guardrails are design decisions rather than universal constants. Failed bins retain EASE. Intermediate counts are not validated; do not infer thresholds or deploy a continuous policy from these results alone.
+- Reports contain aggregates, validation leaderboard, locked switch/fusion choices, independent test stats and confidence bounds; no user-level data or model artifact. Tests and browser runtime integration must precede any deployment. No auto main-branch push.
+- Prior cohorts beyond the specific 44/88 experiments have not been exhaustively checked; no global timestamp cutoff; observed rating bias remains. Result measures offline ranking, not actual satisfaction.
+
+Run on the dedicated branch via GitHub Actions or `node tests/adaptive-default-benchmark.js 5`. All model results use native recommendation calls; static top 10 and fusion top 50 are computed separately to preserve exact production semantics.
