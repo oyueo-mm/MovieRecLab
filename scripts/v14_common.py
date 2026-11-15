@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """V14 shared corpus, model payload and cold-start evaluation helpers."""
-import csv,io,json,time,math,tempfile,pathlib,zipfile,urllib.request
+import csv,io,json,time,math,tempfile,pathlib,zipfile,urllib.request,os,subprocess,random
 from array import array
 from collections import defaultdict
 import numpy as np
@@ -24,12 +24,42 @@ def norm(v):
 def binary(r):
     p=r.copy();p.data=(p.data>=4).astype(np.float32);p.eliminate_zeros();return p
 
+def download_archive(path):
+    # Raw data remains local to this runner, never an Actions artifact/cache.
+    local=os.environ.get("V14_DATASET")
+    if local:
+        path=local
+        with zipfile.ZipFile(path) as z:
+            assert "ml-25m/ratings.csv" in z.namelist()
+        return path
+    for attempt in range(1,7):
+        try:
+            print("DATASET DOWNLOAD ATTEMPT",attempt,flush=True)
+            subprocess.run(["curl","--fail","--location","--connect-timeout","35","--max-time","420","--silent","--show-error","--output",path,base.ZIP_URL],check=True)
+            with zipfile.ZipFile(path) as z:
+                assert all("ml-25m/"+x in z.namelist() for x in ("ratings.csv","movies.csv","links.csv","genome-scores.csv"))
+            print("DATASET READY",os.path.getsize(path),flush=True)
+            return path
+        except (subprocess.CalledProcessError,zipfile.BadZipFile,OSError,AssertionError) as exc:
+            pathlib.Path(path).unlink(missing_ok=True)
+            print("DATASET DOWNLOAD FAILED",attempt,str(exc),flush=True)
+            if attempt==6:raise
+            time.sleep(min(120,10*2**(attempt-1))+random.uniform(0,10))
+
+def retry(fn):
+    for attempt in range(5):
+        try:return fn()
+        except (OSError,TimeoutError,urllib.error.URLError) as exc:
+            if attempt==4:raise
+            print("SMALL DATA RETRY",attempt+1,str(exc),flush=True)
+            time.sleep(5*2**attempt+random.uniform(0,5))
+
 def load(cutoff=0, native=False):
     """Train on explicit ratings, excluding a new user cohort before any fitting."""
     base.EXCLUDE_REMAINDER=61
     with tempfile.TemporaryDirectory(prefix="v14-") as tmp:
-        p=str(pathlib.Path(tmp)/"ml-25m.zip");base.download(base.ZIP_URL,p)
-        links,meta=base.load_small()
+        p=download_archive(str(pathlib.Path(tmp)/"ml-25m.zip"))
+        links,meta=retry(base.load_small)
         with zipfile.ZipFile(p) as z:
             if native:
                 movies=list(base.read_csv(z,"movies.csv"))[1:]
@@ -67,7 +97,7 @@ def load(cutoff=0, native=False):
 
 def small_ratings(ids):
     mp={int(x):i for i,x in enumerate(ids)}
-    with urllib.request.urlopen(base.SMALL_BASE+"ratings.csv",timeout=90) as f:
+    with io.BytesIO(retry(lambda:urllib.request.urlopen(base.SMALL_BASE+"ratings.csv",timeout=90).read())) as f:
         rows=csv.DictReader(io.TextIOWrapper(f,encoding="utf-8-sig"))
         data=[(int(x["userId"])-1,mp[int(x["movieId"])],float(x["rating"])) for x in rows if int(x["movieId"]) in mp]
     u,i,r=zip(*data)
