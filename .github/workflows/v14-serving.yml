@@ -1,0 +1,142 @@
+name: V14 serving bundle and exact parity
+on:
+  push:
+    branches: [release/v14-exact-api]
+    paths: ['.github/workflows/v14-serving.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      OPENBLAS_NUM_THREADS: '2'
+      OMP_NUM_THREADS: '2'
+      MKL_NUM_THREADS: '2'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: pip install numpy==1.26.4 scipy==1.13.1 scikit-learn==1.6.1 implicit==0.7.2 gensim==4.3.3
+      - run: python -m py_compile scripts/v14_*.py && node --check showcase/v14-api.js && node --check showcase/showcase.js
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43736506657
+          pattern: v14-model-*
+          merge-multiple: true
+          path: v14-models
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43736506657
+          pattern: v14-family-*
+          merge-multiple: true
+          path: prior-reports
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43739142527
+          pattern: v14-model-*
+          merge-multiple: true
+          path: v14-models
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43739142527
+          pattern: v14-family-*
+          merge-multiple: true
+          path: prior-reports
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43743663636
+          pattern: v14-model-*
+          merge-multiple: true
+          path: v14-models
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43743663636
+          pattern: v14-family-*
+          merge-multiple: true
+          path: prior-reports
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43748965314
+          pattern: v14-model-*
+          merge-multiple: true
+          path: v14-models
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43748965314
+          pattern: v14-family-*
+          merge-multiple: true
+          path: prior-reports
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43748965314
+          name: v14-integration-single
+          path: v14-serving
+      - name: Validate and package derived model weights
+        run: |
+          PYTHONPATH=scripts python - <<'PY'
+          import json, pathlib, hashlib
+          import v14_common as c
+          from v14_serve import freeze
+          root=pathlib.Path('v14-models')
+          reports={}
+          for p in pathlib.Path('prior-reports').glob('family-*.json'):
+              x=json.loads(p.read_text());reports[x['family']]=x
+          families=set('ease ridge slim knn cohort svd tag-genre lda word2vec item2vec als bpr nmf mf svdpp fm lightfm ncf lightgcn'.split())
+          expected=set('ease ridge slim itemknn association cohort svd tag genre lda word2vec item2vec als bpr nmf mf svdpp fm lightfm ncf lightgcn'.split())
+          assert set(reports)==families
+          fingerprints={(r['catalog_sha256'],r['explicit_train_ratings'],r['positive_train']) for r in reports.values()}
+          assert len(fingerprints)==1
+          fingerprint,n,p=next(iter(fingerprints))
+          weights={p.stem:hashlib.sha256(p.read_bytes()).hexdigest() for p in root.glob('*.npz')}
+          assert set(weights)==expected
+          for model in root.glob('*.npz'):c.restore(model)
+          report=json.loads(pathlib.Path('v14-serving/integration-3.json').read_text())
+          assert len(freeze(report))==24
+          (root/'manifest.json').write_text(json.dumps(dict(catalog_sha256=fingerprint,explicit_train_ratings=n,positive_train=p,weights=weights),indent=2))
+          print('All 19 family reports and 21 derived weights verified')
+          PY
+      - name: Preserve derived bundle (never raw data)
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-serving-bundle
+          path: |
+            v14-models/*.npz
+            v14-models/manifest.json
+            v14-serving/integration-3.json
+          retention-days: 90
+      - name: Acquire official data locally
+        run: |
+          PYTHONPATH=scripts python - <<'PY'
+          import os,pathlib,hashlib
+          import v14_common as c
+          from v14_serve import ARCHIVE_SHA
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'v14-input'
+          root.mkdir(exist_ok=True)
+          p=pathlib.Path(c.download_archive(str(root/'ml-25m.zip')))
+          with p.open('rb') as f:assert hashlib.file_digest(f,'sha256').hexdigest()==ARCHIVE_SHA
+          small=root/'small';small.mkdir(exist_ok=True)
+          for name in ('movies.csv','ratings.csv','tags.csv','links.csv'):
+              (small/name).write_bytes(c.small_source(name))
+          with open(os.environ['GITHUB_ENV'],'a') as f:f.write('V14_DATASET='+str(p)+'\nV14_SMALL_DIR='+str(small)+'\n')
+          PY
+      - name: Exact serving parity across all 24 evaluated input counts
+        run: python -u scripts/v14_serve.py --smoke
+      - name: Remove raw data
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/v14-input"
