@@ -182,7 +182,7 @@ def torch_family(d,mode):
                     if not len(j):continue
                     neg=torch.from_numpy(rng.integers(0,ni,len(j),dtype=np.int64))
                     # Rejection of observed positives before pairwise BPR loss.
-                    uu=u.numpy();nnn=neg.numpy();bad=np.asarray(p[uu,nnn]).ravel()>0
+                    uu=np.array(u.numpy(),dtype=np.int64,copy=True);nnn=np.array(neg.numpy(),dtype=np.int64,copy=True);bad=np.asarray(p[uu,nnn]).ravel()>0
                     keep=torch.from_numpy(~bad);u=u[keep];j=j[keep];neg=neg[keep]
                     if not len(j):continue
                     loss=torch.nn.functional.softplus(net.predict(u,neg)-net.predict(u,j)).mean()
