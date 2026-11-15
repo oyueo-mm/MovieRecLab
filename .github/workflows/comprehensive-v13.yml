@@ -1,0 +1,126 @@
+name: Comprehensive V13 offline experiment
+on:
+  push:
+    branches: [research/comprehensive-v13]
+    paths:
+      - '.github/workflows/comprehensive-v13.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: comprehensive-v13
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install numpy==1.26.4 scipy==1.13.1 scikit-learn==1.6.1 implicit==0.7.2 gensim==4.3.3
+      - run: python -m py_compile scripts/benchmark_comprehensive_v13.py && python scripts/benchmark_comprehensive_v13.py --self-test
+      - run: node --check tests/comprehensive-v13-native.js && node tests/comprehensive-v13-native.js --self-test
+      - run: node --check tests/comprehensive-v13-adaptive.js && node tests/comprehensive-v13-adaptive.js --self-test
+  full-25m:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        counts: ['3,4,5,6,7,8','9,10,11,12,13,14','15,16,17,18,19,20','25,30,40,50,75,100']
+    env:
+      OPENBLAS_NUM_THREADS: '2'
+      OMP_NUM_THREADS: '2'
+      MKL_NUM_THREADS: '2'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install numpy==1.26.4 scipy==1.13.1 scikit-learn==1.6.1 implicit==0.7.2 gensim==4.3.3
+      - run: python -u scripts/benchmark_comprehensive_v13.py 0 "${{ matrix.counts }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v13-full-${{ strategy.job-index }}
+          path: research-results/v13-25m-*.json
+          if-no-files-found: warn
+          retention-days: 30
+  scale-25m:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        budget: [100000,500000,1000000,5000000,10000000]
+    env:
+      OPENBLAS_NUM_THREADS: '2'
+      OMP_NUM_THREADS: '2'
+      MKL_NUM_THREADS: '2'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install numpy==1.26.4 scipy==1.13.1 scikit-learn==1.6.1 implicit==0.7.2 gensim==4.3.3
+      - run: python -u scripts/benchmark_comprehensive_v13.py ${{ matrix.budget }} 3,5,10,20,50,100
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v13-scale-${{ matrix.budget }}
+          path: research-results/v13-25m-*.json
+          if-no-files-found: warn
+          retention-days: 30
+  small-native:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        shard: [0,1,2,3,4,5,6,7]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tests/comprehensive-v13-native.js ${{ matrix.shard }} 8
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v13-small-native-${{ matrix.shard }}
+          path: research-results/v13-small-native-*.json
+          if-no-files-found: warn
+          retention-days: 30
+  small-adaptive:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        count: [3,5,10,20,50,100]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tests/comprehensive-v13-adaptive.js ${{ matrix.count }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v13-small-adaptive-${{ matrix.count }}
+          path: research-results/v13-small-adaptive-*.json
+          if-no-files-found: warn
+          retention-days: 30
