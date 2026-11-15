@@ -6,7 +6,15 @@ const E=require('../engine.js');require('../advanced.js');
 const A=globalThis.MovieRecAdvanced;globalThis.window=globalThis;
 async function main(){
  const src='https://raw.githubusercontent.com/smanihwr/ml-latest-small/ba3cd91761e54faa64483456b619d1a1f4d70971/';
- const files=await Promise.all(['movies.csv','ratings.csv','tags.csv','links.csv'].map(async f=>{let r=await fetch(src+f,{signal:AbortSignal.timeout(120000)});if(!r.ok)throw Error(f+' '+r.status);return [f,await r.text()]}));
+ async function fetchText(f){
+   let last;
+   for(let i=0;i<5;i++){
+     try{const r=await fetch(src+f,{signal:AbortSignal.timeout(120000)});if(!r.ok)throw Error(f+' '+r.status);return await r.text();}
+     catch(e){last=e;console.error('SMALL DATA RETRY',f,i+1,String(e));if(i<4)await new Promise(r=>setTimeout(r,5000*2**i));}
+   }
+   throw last;
+ }
+ const files=await Promise.all(['movies.csv','ratings.csv','tags.csv','links.csv'].map(async f=>{return [f,await fetchText(f)]}));
  const data=E.parseFiles(Object.fromEntries(files)),model=E.createModel(data.movies,data.ratings),fit=A.train('adaptive',model);
  for(const p of ['ml25m-model','ml25m-recommender','v10-model','v10-recommender','v11-config','v11-recommender','v12-rails'])require('../showcase/'+p+'.js');
  const catalog=model.movies;
