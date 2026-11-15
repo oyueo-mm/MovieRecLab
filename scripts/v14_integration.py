@@ -229,7 +229,8 @@ def run(counts):
             report["results"][str(n)]={"validation_singles":singles,"shortlist":shortlist,"search_count":len(search),"selected":selected,"names":names,"test":results,"paired_vs_v11_refit":{"delta":float(delta.mean()),"bonferroni_ci":ci},"paired_vs_small":{"delta":float(base_delta.mean()),"bonferroni_ci":np.quantile(bbs,[alpha/2,1-alpha/2]).tolist()},"rail_selection":{"user":u,"similar":sim,"penalty":penalty,"validation":penalties},"rail_test":{"proposed":rail_metrics(test,lambda row:rails(row,selected,u,sim,names,stack,d["genre"],pop,penalty),d["genre"],pop),"current_bundle_diagnostic":rail_metrics(test,lambda row:row[12] or [],d["genre"],pop)}}
             del test
             report["elapsed_s"]=time.monotonic()-start;report["peak_rss_mib"]=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024
-            (c.OUT/f"integration-{counts[0]}.json").write_text(json.dumps(report,indent=2,allow_nan=False))
+            target=c.OUT/f"integration-{counts[0]}.json"
+            temp=target.with_suffix(".tmp");temp.write_text(json.dumps(report,indent=2,allow_nan=False));temp.replace(target)
             print("COMPLETE",n,selected,ci,flush=True)
     finally:service.close()
     assert len(report["results"])==len(counts)
