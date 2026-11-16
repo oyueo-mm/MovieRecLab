@@ -1,0 +1,55 @@
+name: Animation preset inference only
+on:
+  push:
+    branches: ['release/v14-exact-api']
+    paths: ['.github/workflows/preset-inference-only.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preset:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      OPENBLAS_NUM_THREADS: '2'
+      OMP_NUM_THREADS: '2'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: pip install numpy==1.26.4 scipy==1.13.1 scikit-learn==1.6.1 implicit==0.7.2 gensim==4.3.3
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43748965314
+          name: v14-integration-single
+          path: reports
+      - name: Actual V12 rails for animation preset
+        run: |
+          node - <<'JS'
+          const E=require('./engine.js'),A=require('./advanced.js'),fs=require('fs'),vm=require('vm');require('./demo-presets.js');const win={atob:s=>Buffer.from(s,'base64').toString('binary')},ctx=vm.createContext({window:win,console});for(const f of ['ml25m-model.js','ml25m-recommender.js','v10-model.js','v10-recommender.js','v11-config.js','v11-recommender.js','v12-rails.js'])vm.runInContext(fs.readFileSync('showcase/'+f,'utf8'),ctx);
+          (async()=>{const root='https://raw.githubusercontent.com/smanihwr/ml-latest-small/ba3cd91761e54faa64483456b619d1a1f4d70971/';let files={};for(const n of ['movies.csv','ratings.csv','tags.csv','links.csv']){const r=await fetch(root+n);if(!r.ok)throw Error(n);files[n]=await r.text()}const parsed=E.parseFiles(files),model=E.createModel(parsed.movies,parsed.ratings),catalog=model.movies,rated=[...globalThis.MovieRecPresets.resolve(globalThis.MovieRecPresets.presets.find(p=>p.id==='animation'),model)];if(rated.length!==12)throw Error('profile');const primary=win.MovieRecV11.recommend('similarity',rated,catalog,10)||win.MovieRecV10.recommend('similarity',rated,catalog,10),user=win.MovieRec25M.recommend('user',rated,catalog,12)||E.recommend(model,rated,'user',12).filter(r=>r.method==='user'),similar=win.MovieRecV10.recommend('similarity',rated,catalog,12);const rows=win.MovieRecV12.recommendAll(rated,catalog,[{recs:primary||[]},{recs:user||[]},{recs:similar||[]}]);console.log('PRESET_V12 '+JSON.stringify({rated,rows:rows.map(r=>({key:r.key,label:r.label,movies:r.recs.slice(0,5).map(x=>({id:x.movie.id,title:x.movie.title,tmdb:x.movie.tmdb,imdb:x.movie.imdb}))}))}));fs.writeFileSync('preset-ratings.json',JSON.stringify(rated));})().catch(e=>{console.error(e);process.exitCode=1});
+          JS
+      - name: Exact frozen V14 primary for the 12-film preset
+        run: |
+          PYTHONPATH=scripts python -u - <<'PY'
+          import json, pathlib, numpy as np
+          import v14_common as c, v14_integration as q
+          report=json.loads(pathlib.Path('reports/integration-3.json').read_text())['results']['12']
+          method,inds,weights=report['selected'];parts=[report['names'][i] for i in inds]
+          assert method=='borda' and set(parts)=={'user-k300-m1-s3','user-k60-m1-s10'},(method,parts)
+          d=c.load();byid={int(v):i for i,v in enumerate(d['ids'])}
+          profile=json.loads(pathlib.Path('preset-ratings.json').read_text())
+          assert len(profile)==12 and all(mid in byid for mid,r in profile)
+          a=np.array([byid[mid] for mid,r in profile],np.int32);w=np.array([r for mid,r in profile],np.float32)
+          scores=q.knn(d)(a,w);ranks=[c.rank(scores[m],a,d['allowed']) for m in parts];ix=np.unique(np.concatenate(ranks));B=np.zeros((len(ix),len(parts)),np.float32)
+          for j,r in enumerate(ranks):B[np.searchsorted(ix,r),j]=(50-np.arange(len(r)))/50
+          s=B@np.asarray(weights,np.float32);top=ix[np.lexsort((ix,-s))[:5]]
+          ids=[int(d['ids'][i]) for i in top];result=[{'id':mid,'title':d['meta'][mid]['title']} for mid in ids]
+          print('PRESET_V14 '+json.dumps({'parts':parts,'weights':weights,'movies':result},ensure_ascii=False),flush=True)
+          PY
