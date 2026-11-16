@@ -1,0 +1,57 @@
+name: V13 animation preset inference only
+on:
+  push:
+    branches: ['release/v14-exact-api']
+    paths: ['.github/workflows/preset-v13-only.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preset:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      OPENBLAS_NUM_THREADS: '2'
+      OMP_NUM_THREADS: '2'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/comprehensive-v13
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install numpy==1.26.4 scipy==1.13.1 scikit-learn==1.6.1 implicit==0.7.2 gensim==4.3.3
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 43732231467
+          name: v13-full-1
+          path: reports
+      - name: Exact V13 selected User KNN for the 12-film preset
+        run: |
+          PYTHONPATH=scripts python -u - <<'PY'
+          import json, pathlib, tempfile, zipfile, numpy as np
+          import benchmark_comprehensive_v13 as q
+          b=q.base
+          report=json.loads(pathlib.Path('reports/v13-25m-0-9.json').read_text())
+          assert report['results']['12']['selected']=='user-knn'
+          b.EXCLUDE_REMAINDER=43
+          with tempfile.TemporaryDirectory(prefix='v13-preset-') as tmp:
+              archive=str(pathlib.Path(tmp)/'ml-25m.zip');b.download(b.ZIP_URL,archive)
+              link,meta=b.load_small()
+              with zipfile.ZipFile(archive) as zf:ids,meta,genome,valid,mat,held,total=b.prepare(zf,link,meta)
+          assert mat.nnz==12065607 and len(held)==320
+          lookup={int(v):i for i,v in enumerate(ids)}
+          profile=[(1,5),(6377,5),(364,5),(4306,4.5),(68954,4.5),(152081,5),(134853,5),(5618,3.5),(60069,3),(296,1.5),(593,2),(8950,2.5)]
+          assert all(mid in lookup for mid,r in profile)
+          for mid,r in profile:print('ANCHOR',mid,meta[mid]['title'],r)
+          liked=[lookup[mid] for mid,r in profile if r>=4]
+          counts=np.asarray(mat.sum(axis=1)).reshape(-1)
+          csc=mat.tocsc();overlap=np.asarray(csc[:,liked].sum(axis=1),dtype=np.float32).reshape(-1)
+          s=overlap/np.sqrt(np.maximum(1,counts)*len(liked))*overlap/(overlap+3);s[overlap<2]=0
+          top=np.argpartition(-s,min(140,len(s)-1))[:140];top=top[s[top]>0]
+          scores=np.asarray(s[top]@mat[top],dtype=np.float32).reshape(-1)/max(1e-8,float(sum(s[top])))
+          rank=q.rank(scores,{lookup[mid] for mid,r in profile},np.asarray(mat.sum(axis=0)).reshape(-1)>=10)[:5]
+          movies=[{'id':int(ids[i]),'title':meta[int(ids[i])]['title']} for i in rank]
+          print('PRESET_V13 '+json.dumps({'profile':profile,'movies':movies},ensure_ascii=False),flush=True)
+          PY
