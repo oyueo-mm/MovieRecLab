@@ -42,7 +42,7 @@ jobs:
               with zipfile.ZipFile(archive) as zf:ids,meta,genome,valid,mat,held,total=b.prepare(zf,link,meta)
           assert mat.nnz==12065607 and len(held)==320
           lookup={int(v):i for i,v in enumerate(ids)}
-          profile=[(1,5),(6377,5),(364,5),(4306,4.5),(68954,4.5),(152081,5),(134853,5),(5618,3.5),(60069,3),(296,1.5),(593,2),(8950,2.5)]
+          profile=[(1,5),(6377,5),(364,5),(4306,4.5),(68954,4.5),(152081,5),(134853,5),(5618,3.5),(60069,3),(296,1.5),(593,2),(8957,2.5)]
           assert all(mid in lookup for mid,r in profile)
           for mid,r in profile:print('ANCHOR',mid,meta[mid]['title'],r)
           liked=[lookup[mid] for mid,r in profile if r>=4]
