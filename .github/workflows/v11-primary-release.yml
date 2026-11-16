@@ -1,0 +1,35 @@
+name: V11 primary release verification
+on:
+  push:
+    branches: ['feat/v11-primary-default']
+  pull_request:
+    paths: ['showcase/v11-primary.js','tests/v11-primary-default.test.js']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: V11 bundled inference and default selection
+        run: |
+          node --check showcase/showcase.js
+          node --check showcase/v11-primary.js
+          node tests/v11-primary-default.test.js
+          node tests/v11-inference.test.js
+          node tests/v11-production.test.js
+          node tests/v10-inference.test.js
+          node tests/adaptive-primary.test.js
+          node tests/ui-selection.test.js
+      - run: npm install --no-save --no-package-lock jsdom@26
+      - name: Existing showcase and selection regression
+        run: |
+          node tests/showcase.test.js
+          node tests/showcase-multirail.test.js
+          node tests/v12-rails.test.js
+          node tests/v17-rating-drag.test.js
+          node tests/ui-dom-integration.test.js
