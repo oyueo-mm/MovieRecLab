@@ -1,8 +1,4 @@
-<p align="center">
-  <a href="https://oyueo-mm.github.io/MovieRecLab/">
-    <img src="docs/readme-cover.svg" alt="MovieRecLab — 영화 추천 경험을 표현한 오리지널 컨셉 배너" width="100%">
-  </a>
-</p>
+# MovieRecLab
 
 <div align="center">
 
